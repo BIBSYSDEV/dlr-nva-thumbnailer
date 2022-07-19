@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Lambda sending emails
+
+
+Globals:
+  Function:
+    Timeout: 900
+    MemorySize: 1798
+    Runtime: java11
+
+Resources:
+  DlrNvaEmailServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [ lambda.amazonaws.com ]
+            Action: [ 'sts:AssumeRole' ]
+      Policies:
+        - PolicyName: writeLog
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
+        - PolicyName: sendMail
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                Resource: "*"
+
+  DlrNvaEmailServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: email-service
+      Handler: no.sikt.nva.thumbnail.ThumbnailRequestHandler::handleRequest
+      Role: !GetAtt DlrNvaEmailServiceRole.Arn
+      Runtime: java11
+      MemorySize: 1798
+      Events:
+        SendEmailRequest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref EmailGatewayAPI
+            Method: post
+            Path: /email
