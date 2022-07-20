@@ -1,17 +1,20 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Lambda sending emails
+  Lambda creating thumbnails for uploaded files and urls.
 
-
-Globals:
-  Function:
-    Timeout: 900
-    MemorySize: 1798
-    Runtime: java11
+Parameters:
+  FileUploadBucketName:
+    Type: String
+    Default: !Sub 'nva-resource-storage-${AWS::AccountId}'
+    Description: Name of input bucket. Files uploaded here will be used as input for this lambda.
+  ThumbnailOutputBucketName:
+    Type: String
+    Default: !Sub 'dlr-nva-thumbnails-${AWS::AccountId}'
+    Description: Name of output bucket. Thumbnails created by this function will be stored here. This bucket is also setup to be public read.
 
 Resources:
-  DlrNvaEmailServiceRole:
+  DlrNvaThumbnailServiceRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -32,28 +35,45 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - PolicyName: sendMail
+        - policyName: getInputFilePolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
                 Action:
-                  - ses:SendEmail
-                  - ses:SendRawEmail
-                Resource: "*"
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${FileUploadBucketName}*'
+        - policyName: uploadThumbnailPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:putObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}*'
 
-  DlrNvaEmailServiceFunction:
+  DlrNvaThumbnailServiceFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: email-service
+      CodeUri: thumbnail-service
       Handler: no.sikt.nva.thumbnail.ThumbnailRequestHandler::handleRequest
-      Role: !GetAtt DlrNvaEmailServiceRole.Arn
+      Role: !GetAtt DlrNvaThumbnailServiceRole.Arn
+      Environment:
+        Variables:
+          THUMBNAIL_BUCKET: !Ref ThumbnailOutputBucketName
       Runtime: java11
-      MemorySize: 1798
+      MemorySize: 10240
       Events:
-        SendEmailRequest:
-          Type: Api
+        FileUploadedEvent:
+          Type: S3
           Properties:
-            RestApiId: !Ref EmailGatewayAPI
-            Method: post
-            Path: /email
+            Bucket: !Ref FileUploadBucketName
+            Events: 's3:ObjectCreated:*'
+
+  ThumbnailBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      BucketName: !Ref ThumbnailOutputBucketName
