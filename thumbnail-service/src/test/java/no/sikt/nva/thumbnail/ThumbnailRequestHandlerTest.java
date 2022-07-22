@@ -52,7 +52,7 @@ class ThumbnailRequestHandlerTest {
     public static final ResponseElementsEntity EMPTY_RESPONSE_ELEMENTS = null;
     public static final UserIdentityEntity EMPTY_USER_IDENTITY = null;
     private static final String CONTENT_DISPOSITION = "filename=\"%s\"";
-    private static final String UNSUPPORTED_FILES_PATH = "unsupported-files";
+    private static final String UNSUPPORTED_FILES_PATH = "unsupported_files";
     private static final String ZIP_FILE = "zip_is_not_supported.zip";
     private static final String ZIP_MIME_TYPE = "application/zip";
     private static final String IMAGES_PATH = "images";
