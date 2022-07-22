@@ -121,7 +121,7 @@ class ThumbnailRequestHandlerTest {
 
 
     @Test
-    void shouldHandleLargeSizedThumbnails() throws IOException {
+    void shouldHandleTinySizedThumbnails() throws IOException {
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + TINY_IMAGE, PNG_MIME_TYPE,
                                                TINY_IMAGE);
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(

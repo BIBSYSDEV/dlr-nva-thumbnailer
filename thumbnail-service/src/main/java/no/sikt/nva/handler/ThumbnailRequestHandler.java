@@ -31,8 +31,11 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
     public static final String FILENAME_PREFIX = "filename=\"";
     public static final String FILENAME_POSTFIX = "\"";
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailRequestHandler.class);
-    private static final String INPUT_FILE_NAME_PREFIX = "/tmp/"; // protects against overwriting existing files in
-    // directory, plus it's the only place aws allows filewriting;
+
+    // protects against overwriting existing files in
+    // directory, plus it's the only place aws allows filewriting; To view thumbnails created locally: replace with
+    // "" and comment out outputFile.deleteOnExit() / inputFile.deleteOnExit();
+    private static final String INPUT_FILE_NAME_PREFIX = "/tmp/";
     private static final String OUTPUT_FILE_NAME = "thumbnail.png";
     private static final String THUMBNAIL_BUCKET_ENVIRONMENT_FIELD = "THUMBNAIL_BUCKET";
     public static final String DELIMITER = ", ";
