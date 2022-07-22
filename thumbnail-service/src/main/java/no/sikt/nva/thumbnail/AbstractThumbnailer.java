@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import nva.commons.core.JacocoGenerated;
 
 public abstract class AbstractThumbnailer implements Thumbnailer {
 
@@ -59,16 +60,19 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      * @throws IOException          If file cannot be read/written.
      * @throws ThumbnailerException If the thumbnailing process failed.
      */
+    @JacocoGenerated
     @Override
     public void generateThumbnail(URL input, File output, String mimeType) throws IOException, ThumbnailerException {
         generateThumbnail(input, output);
     }
 
+    @JacocoGenerated
     @Override
     public void generateThumbnail(File input, File output) throws IOException, ThumbnailerException {
         throw new ThumbnailerException("This Thumbnailer doesn't support File/file!");
     }
 
+    @JacocoGenerated
     @Override
     public void generateThumbnail(URL input, File output) throws IOException, ThumbnailerException {
         throw new ThumbnailerException("This Thumbnailer doesn't support URL!");
@@ -92,6 +96,7 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      * @param thumbWidth  Width in Pixel.
      * @param thumbHeight Height in Pixel.
      */
+    @JacocoGenerated
     @Override
     public void setImageSize(int thumbWidth, int thumbHeight) {
         this.thumbHeight = thumbHeight;
@@ -103,6 +108,7 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      *
      * @return image width of created thumbnails.
      */
+    @JacocoGenerated
     @Override
     public int getCurrentImageWidth() {
         return thumbWidth;
@@ -113,6 +119,7 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      *
      * @return image height of created thumbnails.
      */
+    @JacocoGenerated
     @Override
     public int getCurrentImageHeight() {
         return thumbHeight;
@@ -126,7 +133,5 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      * @return List of MIME Types. If empty, all Files may be passed to this Thumbnailer.
      */
     @Override
-    public List<String> getAcceptedMimeTypes() {
-        return List.of();
-    }
+    public abstract List<String> getAcceptedMimeTypes();
 }

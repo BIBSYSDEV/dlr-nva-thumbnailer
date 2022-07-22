@@ -70,7 +70,6 @@ tasks.withType(Checkstyle) {
     }
 }
 
-
 check.dependsOn jacocoTestCoverageVerification
 jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
 
@@ -80,7 +79,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'METHOD'
                 value = 'COVEREDRATIO'
-                minimum = 0.01
+                minimum = 1.00
             }
         }
 
@@ -88,7 +87,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'CLASS'
                 value = 'COVEREDRATIO'
-                minimum = 0.01
+                minimum = 1.00
             }
         }
     }

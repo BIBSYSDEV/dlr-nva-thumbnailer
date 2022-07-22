@@ -29,6 +29,8 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
     // directory, plus it's the only place aws allows filewriting;
     private static final String OUTPUT_FILE_NAME = "thumbnail.png";
     private static final String THUMBNAIL_BUCKET_ENVIRONMENT_FIELD = "THUMBNAIL_BUCKET";
+    public static final String CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE = "Currently Supporting the "
+                                                                                           + "following Mime Types: ";
     private final String thumbnailBucketName;
     private final S3Client s3Client;
     private File inputFile;
@@ -68,6 +70,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
 
     private File generateThumbnail() {
         try (var thumbnailerManager = new ThumbnailerManager()) {
+            logCurrentSupportedMimeTypes(thumbnailerManager);
             var outPutFile = new File(INPUT_FILE_NAME_PREFIX + OUTPUT_FILE_NAME);
             thumbnailerManager.generateThumbnail(inputFile, outPutFile, mimeTypeFromS3Response);
             return outPutFile;
@@ -75,6 +78,11 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
             logger.warn(COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE);
             throw new RuntimeException(e);
         }
+    }
+
+    private void logCurrentSupportedMimeTypes(ThumbnailerManager thumbnailerManager) {
+        var supportedMimeTypes = String.join(", ", thumbnailerManager.getAcceptedMimeTypes());
+        logger.info(CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE + supportedMimeTypes);
     }
 
     private File readFile(S3Event s3Event) {

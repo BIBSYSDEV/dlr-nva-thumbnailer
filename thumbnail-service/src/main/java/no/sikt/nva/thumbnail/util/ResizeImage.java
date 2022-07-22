@@ -6,50 +6,24 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import javax.imageio.ImageIO;
-import no.sikt.nva.thumbnail.UnsupportedInputFileFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResizeImage {
 
-    /**
-     * Scale input image so that width and height is equal (or smaller) to the output size. The other dimension will be
-     * smaller or equal than the output size.
-     */
-    public static final int RESIZE_FIT_BOTH_DIMENSIONS = 2;
-    /**
-     * Scale input image so that width or height is equal to the output size. The other dimension will be bigger or
-     * equal than the output size.
-     */
-    public static final int RESIZE_FIT_ONE_DIMENSION = 3;
-    /**
-     * Do not resize the image. Instead, crop the image (if smaller) or center it (if bigger).
-     */
-    public static final int NO_RESIZE_ONLY_CROP = 4;
-    /**
-     * Do not try to scale the image up, only down. If bigger, center it.
-     */
-    public static final int DO_NOT_SCALE_UP = 16;
-    /**
-     * If output image is bigger than input image, allow the output to be smaller than expected (the size of the input
-     * image).
-     */
-    public static final int ALLOW_SMALLER = 32;
+    public static final double SAME_SCALE = 1.0;
     /**
      * The logger for this class.
      */
     private static final Logger mLog = LoggerFactory.getLogger(ResizeImage.class);
-    public int resizeMethod = RESIZE_FIT_BOTH_DIMENSIONS;
-    public int extraOptions = DO_NOT_SCALE_UP;
+    private final int thumbWidth;
+    private final int thumbHeight;
     private BufferedImage inputImage;
     private boolean isProcessed;
     private BufferedImage outputImage;
     private int imageWidth;
     private int imageHeight;
-    private int thumbWidth;
-    private int thumbHeight;
     private double resizeRatio;
     private int scaledWidth;
     private int scaledHeight;
@@ -68,16 +42,7 @@ public class ResizeImage {
         setInputImage(image);
     }
 
-    public void setInputImage(InputStream input) throws IOException {
-        BufferedImage image = ImageIO.read(input);
-        setInputImage(image);
-    }
-
-    public void setInputImage(BufferedImage input) throws UnsupportedInputFileFormatException {
-        if (input == null) {
-            throw new UnsupportedInputFileFormatException("The image reader could not open the file.");
-        }
-
+    public void setInputImage(BufferedImage input) {
         this.inputImage = input;
         isProcessed = false;
         imageWidth = inputImage.getWidth(null);
@@ -105,53 +70,25 @@ public class ResizeImage {
             mLog.debug("outputImage = inputImage");
             outputImage = inputImage;
         } else {
-            calcDimensions(resizeMethod);
+            calcDimensions();
             paint();
         }
 
         isProcessed = true;
     }
 
-    private void calcDimensions(int resizeMethod) {
-        switch (resizeMethod) {
-            case RESIZE_FIT_BOTH_DIMENSIONS:
-                resizeRatio = Math.min(((double) thumbWidth) / imageWidth, ((double) thumbHeight) / imageHeight);
-                break;
-
-            case RESIZE_FIT_ONE_DIMENSION:
-                resizeRatio = Math.max(((double) thumbWidth) / imageWidth, ((double) thumbHeight) / imageHeight);
-                break;
-
-            case NO_RESIZE_ONLY_CROP:
-                resizeRatio = 1.0;
-                break;
-            default:
-                break;
-        }
-        if ((extraOptions & DO_NOT_SCALE_UP) > 0 && resizeRatio > 1.0) {
-            resizeRatio = 1.0;
+    private void calcDimensions() {
+        resizeRatio = Math.min(((double) thumbWidth) / imageWidth, ((double) thumbHeight) / imageHeight);
+        if (resizeRatio > SAME_SCALE) {
+            resizeRatio = SAME_SCALE;
         }
 
         scaledWidth = (int) Math.round(imageWidth * resizeRatio);
         scaledHeight = (int) Math.round(imageHeight * resizeRatio);
 
-        if ((extraOptions & ALLOW_SMALLER) > 0 && scaledWidth < thumbWidth && scaledHeight < thumbHeight) {
-            thumbWidth = scaledWidth;
-            thumbHeight = scaledHeight;
-        }
-
-        // Center if smaller.
-        if (scaledWidth < thumbWidth) {
-            offsetX = (thumbWidth - scaledWidth) / 2;
-        } else {
-            offsetX = 0;
-        }
-
-        if (scaledHeight < thumbHeight) {
-            offsetY = (thumbHeight - scaledHeight) / 2;
-        } else {
-            offsetY = 0;
-        }
+        // Center:
+        offsetX = (thumbWidth - scaledWidth) / 2;
+        offsetY = (thumbHeight - scaledHeight) / 2;
 
         mLog.debug("recalculated dimensions");
     }
@@ -169,28 +106,12 @@ public class ResizeImage {
         // Enable smooth, high-quality resampling
         graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-        ThumbnailReadyObserver observer = new ThumbnailReadyObserver(Thread.currentThread());
-        boolean scalingComplete = graphics2D.drawImage(inputImage, offsetX, offsetY, scaledWidth, scaledHeight,
-                                                       observer);
-
-        if (!scalingComplete && observer != null) {
-            // ImageObserver must wait for ready
-            if (mLog.isDebugEnabled()) {
-                throw new RuntimeException("Scaling is not yet complete!");
-            } else {
-                mLog.warn("ResizeImage: Scaling is not yet complete!");
-
-                while (!observer.ready) {
-                    System.err.println("Waiting .4 sec...");
-                    try {
-                        Thread.sleep(400);
-                    } catch (InterruptedException ignored) {
-                        // ignored
-                    }
-                }
-            }
-        }
-
+        graphics2D.drawImage(inputImage,
+                             offsetX,
+                             offsetY,
+                             scaledWidth,
+                             scaledHeight,
+                             null);
         graphics2D.dispose();
     }
 }

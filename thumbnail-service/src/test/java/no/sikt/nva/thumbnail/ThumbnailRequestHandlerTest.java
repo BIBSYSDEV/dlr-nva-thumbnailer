@@ -58,6 +58,9 @@ class ThumbnailRequestHandlerTest {
     private static final String IMAGES_PATH = "images";
     private static final String JPEG_FILE = "pug.jpeg";
     private static final String JPEG_MIME_TYPE = "image/jpeg";
+    private static final String ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT = "correct-size.png";
+    private static final String PNG_MIME_TYPE = "image/png";
+    private static final String TINY_IMAGE = "tiny.png";
     private ThumbnailRequestHandler handler;
     private S3Client s3Client;
     private S3Driver s3Driver;
@@ -105,6 +108,29 @@ class ThumbnailRequestHandlerTest {
         verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
         assertDoesNotThrow(() -> handler.handleRequest(s3Event, CONTEXT));
     }
+
+    @Test
+    void shouldHandleIdenticalSizedThumbnails() throws IOException {
+        var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT, PNG_MIME_TYPE,
+                                               ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT);
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(
+            PutObjectResponse.builder().build());
+        verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        assertDoesNotThrow(() -> handler.handleRequest(s3Event, CONTEXT));
+    }
+
+
+    @Test
+    void shouldHandleLargeSizedThumbnails() throws IOException {
+        var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + TINY_IMAGE, PNG_MIME_TYPE,
+                                               TINY_IMAGE);
+        when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(
+            PutObjectResponse.builder().build());
+        verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+        assertDoesNotThrow(() -> handler.handleRequest(s3Event, CONTEXT));
+    }
+
+
 
     private void s3PutObjectThrowsException(String expectedMessage) {
         when(s3Client.putObject(
