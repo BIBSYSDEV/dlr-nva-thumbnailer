@@ -12,6 +12,7 @@ import no.sikt.nva.thumbnail.ThumbnailerManager;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.StringUtils;
 import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +28,14 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
     public static final String COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE = "Could not create thumbnail";
     public static final String CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE = "Currently Supporting the "
                                                                                            + "following Mime Types: ";
+    public static final String FILENAME_PREFIX = "filename=\"";
+    public static final String FILENAME_POSTFIX = "\"";
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailRequestHandler.class);
     private static final String INPUT_FILE_NAME_PREFIX = "/tmp/"; // protects against overwriting existing files in
     // directory, plus it's the only place aws allows filewriting;
     private static final String OUTPUT_FILE_NAME = "thumbnail.png";
     private static final String THUMBNAIL_BUCKET_ENVIRONMENT_FIELD = "THUMBNAIL_BUCKET";
+    public static final String DELIMITER = ", ";
     private final String thumbnailBucketName;
     private final S3Client s3Client;
     private File inputFile;
@@ -82,7 +86,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
     }
 
     private void logCurrentSupportedMimeTypes(ThumbnailerManager thumbnailerManager) {
-        var supportedMimeTypes = String.join(", ", thumbnailerManager.getAcceptedMimeTypes());
+        var supportedMimeTypes = String.join(DELIMITER, thumbnailerManager.getAcceptedMimeTypes());
         logger.info(CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE + supportedMimeTypes);
     }
 
@@ -116,7 +120,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
     private String determineFileName(ResponseInputStream<GetObjectResponse> responseInputStream) {
         return INPUT_FILE_NAME_PREFIX
                + responseInputStream.response().contentDisposition().replace(
-            "filename=\"", "").replace("\"", "");
+            FILENAME_PREFIX, StringUtils.EMPTY_STRING).replace(FILENAME_POSTFIX, StringUtils.EMPTY_STRING);
     }
 
     private GetObjectRequest createObjectRequest(String objectKey, String bucketName) {

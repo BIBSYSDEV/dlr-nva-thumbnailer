@@ -13,6 +13,21 @@ import org.slf4j.LoggerFactory;
 public class ResizeImage {
 
     public static final double SAME_SCALE = 1.0;
+    public static final String OUTPUT_TO_FILE_WITH_FORMAT_PROCESSING_FIRST_LOG_MESSAGE = "about to "
+                                                                                         + "write "
+                                                                                         + "output to "
+                                                                                         + "file {} "
+                                                                                         + "with "
+                                                                                         + "format {}."
+                                                                                         + ".. "
+                                                                                         + "processing"
+                                                                                         + " first...";
+    public static final String WRITE_OUTPUT_IMAGE_WITH_FORMAT_TO_FILE_LOG_MESSAGE = "about to "
+                                                                                    + "let "
+                                                                                    + "ImageIO"
+                                                                                    + ".write "
+                                                                                    + "outputImage {} with format {} "
+                                                                                    + "to file {} ";
     /**
      * The logger for this class.
      */
@@ -54,12 +69,14 @@ public class ResizeImage {
     }
 
     public void writeOutput(File output, String format) throws IOException {
-        mLog.debug("about to write output to file {} with format {}... processing first...", output.getAbsolutePath(),
+        mLog.debug(OUTPUT_TO_FILE_WITH_FORMAT_PROCESSING_FIRST_LOG_MESSAGE,
+                   output.getAbsolutePath(),
                    format);
         if (!isProcessed) {
             process();
         }
-        mLog.debug("about to let ImageIO.write outputImage {} with format {} to file {} ", outputImage.toString(),
+        mLog.debug(WRITE_OUTPUT_IMAGE_WITH_FORMAT_TO_FILE_LOG_MESSAGE,
+                   outputImage.toString(),
                    format, output.getAbsolutePath());
 
         ImageIO.write(outputImage, format, output);
