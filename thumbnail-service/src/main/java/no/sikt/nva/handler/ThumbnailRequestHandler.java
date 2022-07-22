@@ -1,17 +1,18 @@
 package no.sikt.nva.handler;
 
+import static nva.commons.core.attempt.Try.attempt;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.S3Event;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import no.sikt.nva.thumbnail.ThumbnailerException;
 import no.sikt.nva.thumbnail.ThumbnailerManager;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
+import nva.commons.core.attempt.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -24,13 +25,13 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
 
     public static final String COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE = "Could not create thumbnail";
+    public static final String CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE = "Currently Supporting the "
+                                                                                           + "following Mime Types: ";
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailRequestHandler.class);
     private static final String INPUT_FILE_NAME_PREFIX = "/tmp/"; // protects against overwriting existing files in
     // directory, plus it's the only place aws allows filewriting;
     private static final String OUTPUT_FILE_NAME = "thumbnail.png";
     private static final String THUMBNAIL_BUCKET_ENVIRONMENT_FIELD = "THUMBNAIL_BUCKET";
-    public static final String CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE = "Currently Supporting the "
-                                                                                           + "following Mime Types: ";
     private final String thumbnailBucketName;
     private final S3Client s3Client;
     private File inputFile;
@@ -89,24 +90,27 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
         var objectKey = getObjectKey(s3Event);
         var bucketName = getBucketName(s3Event);
         var objectRequest = createObjectRequest(objectKey, bucketName);
-        File inputFile;
-        try {
-            var responseInputStream = s3Client.getObject(objectRequest);
-            mimeTypeFromS3Response = responseInputStream.response().contentType();
-            String inputFileName = determineFileName(responseInputStream);
-            inputFile = new File(inputFileName);
+        return attempt(() -> s3Client.getObject(objectRequest))
+                   .map(this::readResponseAndRetrieveMimeType)
+                   .orElseThrow(this::logFailureAndThrowException);
+    }
 
-            try (var fileOutputStream = Files.newOutputStream(Paths.get(inputFileName))) {
-                fileOutputStream.write(responseInputStream.readAllBytes());
-            } catch (Exception e) {
-                logger.warn(e.getMessage());
-                throw new RuntimeException(e);
-            }
-            return inputFile;
+    private RuntimeException logFailureAndThrowException(Failure<File> failure) {
+        logger.warn(failure.getException().getMessage());
+        throw new RuntimeException(failure.getException());
+    }
+
+    private File readResponseAndRetrieveMimeType(ResponseInputStream<GetObjectResponse> response) {
+        mimeTypeFromS3Response = response.response().contentType();
+        String inputFileName = determineFileName(response);
+        File inputFile = new File(inputFileName);
+        try (var fileOutputStream = Files.newOutputStream(inputFile.toPath())) {
+            fileOutputStream.write(response.readAllBytes());
         } catch (Exception e) {
             logger.warn(e.getMessage());
             throw new RuntimeException(e);
         }
+        return inputFile;
     }
 
     private String determineFileName(ResponseInputStream<GetObjectResponse> responseInputStream) {
