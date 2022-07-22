@@ -26,6 +26,6 @@ public class NativeImageThumbnailer extends AbstractThumbnailer {
      */
     @Override
     public List<String> getAcceptedMimeTypes() {
-        return Arrays.stream(ImageIO.getReaderMIMETypes()).toList();
+        return Arrays.asList(ImageIO.getReaderMIMETypes());
     }
 }
