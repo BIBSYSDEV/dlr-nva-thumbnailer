@@ -7,13 +7,13 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import no.sikt.nva.thumbnail.AbstractThumbnailer;
 import no.sikt.nva.thumbnail.ThumbnailerException;
-import no.sikt.nva.thumbnail.util.ResizeImage;
+import no.sikt.nva.thumbnail.util.ImageResizer;
 
 public class NativeImageThumbnailer extends AbstractThumbnailer {
 
     @Override
     public void generateThumbnail(File input, File output) throws IOException, ThumbnailerException {
-        ResizeImage resizer = new ResizeImage(thumbWidth, thumbHeight, input);
+        ImageResizer resizer = new ImageResizer(thumbWidth, thumbHeight, input);
         resizer.writeThumbnailToFile(output);
     }
 

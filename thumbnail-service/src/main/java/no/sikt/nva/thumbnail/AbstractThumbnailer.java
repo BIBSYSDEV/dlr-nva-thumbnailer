@@ -10,14 +10,8 @@ import nva.commons.core.JacocoGenerated;
 
 public abstract class AbstractThumbnailer implements Thumbnailer {
 
-    /**
-     * Height of thumbnail picture to create (in Pixel).
-     */
     protected int thumbHeight;
 
-    /*
-     * Width of thumbnail picture to create (in Pixel).
-     */
     protected int thumbWidth;
 
     /**
@@ -79,18 +73,6 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
     }
 
     /**
-     * This function will be called after all Thumbnails are generated. Note: This acts as a Deconstructor. Do not
-     * expect this object to work after calling this method.
-     *
-     * @throws IOException If some errors occured during finalising.
-     */
-    @Override
-    public void close() throws IOException {
-        // Do nothing for now - other Thumbnailer may need cleanup code here.
-        closed = true;
-    }
-
-    /**
      * Set a new Thumbnail size. All following thumbnails will be generated in this size.
      *
      * @param thumbWidth  Width in Pixel.
@@ -134,4 +116,16 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      */
     @Override
     public abstract List<String> getAcceptedMimeTypes();
+
+    /**
+     * This function will be called after all Thumbnails are generated. Note: This acts as a Deconstructor. Do not
+     * expect this object to work after calling this method.
+     *
+     * @throws IOException If some errors occured during closing.
+     */
+    @Override
+    public void close() throws IOException {
+        // Do nothing for now - other Thumbnailer may need cleanup code here.
+        closed = true;
+    }
 }

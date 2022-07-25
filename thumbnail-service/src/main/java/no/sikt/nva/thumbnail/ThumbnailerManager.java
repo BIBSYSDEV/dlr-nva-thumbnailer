@@ -1,33 +1,26 @@
 package no.sikt.nva.thumbnail;
 
-import static no.sikt.nva.thumbnail.ThumbnailerConstants.THUMBNAIL_DEFAULT_HEIGHT;
-import static no.sikt.nva.thumbnail.ThumbnailerConstants.THUMBNAIL_DEFAULT_WIDTH;
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import no.sikt.nva.thumbnail.thumbnailer.NativeImageThumbnailer;
-import nva.commons.core.JacocoGenerated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThumbnailerManager implements Thumbnailer {
+public class ThumbnailerManager implements Closeable {
 
     public static final String NOT_SUPPORTED_MIMETYPE_S = "Not supported mimetype %s";
+    public static final String COULD_NOT_CLOSE_INDIVIDUAL_THUMBNAIL_WARNING = "could not close %s";
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailerManager.class);
     private final List<Thumbnailer> thumbnailers;
-    private int currentImageHeight;
-    private int currentImageWidth;
 
     public ThumbnailerManager() {
-        this.currentImageHeight = THUMBNAIL_DEFAULT_HEIGHT;
-        this.currentImageWidth = THUMBNAIL_DEFAULT_WIDTH;
         this.thumbnailers = List.of(new NativeImageThumbnailer());
     }
 
-    @Override
     public void generateThumbnail(File input, File output, String mimeType) throws IOException, ThumbnailerException {
         var correctThumbnailer =
             thumbnailers.stream()
@@ -41,52 +34,11 @@ public class ThumbnailerManager implements Thumbnailer {
         }
     }
 
-    @JacocoGenerated
-    @Override
-    public void generateThumbnail(URL input, File output, String mimeType) throws IOException, ThumbnailerException {
-
-    }
-
-    @JacocoGenerated
-    @Override
-    public void generateThumbnail(File input, File output) throws IOException, ThumbnailerException {
-
-    }
-
-    @JacocoGenerated
-    @Override
-    public void generateThumbnail(URL input, File output) throws IOException, ThumbnailerException {
-
-    }
-
     @Override
     public void close() {
         thumbnailers.forEach(this::closeIndividualThumbnail);
     }
 
-    @JacocoGenerated
-    @Override
-    public void setImageSize(int width, int height) {
-        currentImageWidth = width;
-        currentImageHeight = height;
-        for (var thumbnailer : thumbnailers) {
-            thumbnailer.setImageSize(width, height);
-        }
-    }
-
-    @JacocoGenerated
-    @Override
-    public int getCurrentImageWidth() {
-        return currentImageWidth;
-    }
-
-    @JacocoGenerated
-    @Override
-    public int getCurrentImageHeight() {
-        return currentImageHeight;
-    }
-
-    @Override
     public List<String> getAcceptedMimeTypes() {
         return thumbnailers
                    .stream()
@@ -99,7 +51,9 @@ public class ThumbnailerManager implements Thumbnailer {
         try {
             thumbnailer.close();
         } catch (IOException ignored) {
-            logger.warn("could not close " + thumbnailer.getClass().getName());
+            logger.warn(String.format(
+                COULD_NOT_CLOSE_INDIVIDUAL_THUMBNAIL_WARNING,
+                thumbnailer.getClass().getName()));
         }
     }
 }

@@ -51,15 +51,6 @@ public interface Thumbnailer extends Closeable {
     void generateThumbnail(URL input, File output) throws IOException, ThumbnailerException;
 
     /**
-     * This function will be called after all Thumbnails are generated. Note: This acts as a Deconstructor. Do not
-     * expect this object to work after calling this method.
-     *
-     * @throws IOException If some errors occured during finalising
-     */
-    @Override
-    void close() throws IOException;
-
-    /**
      * Set a new Thumbnail size. All following thumbnails will be generated in this size.
      *
      * @param width  Width in Pixel

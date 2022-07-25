@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class ResizeImage {
+public class ImageResizer {
 
     public static final String PNG = "PNG";
     public static final int LEFT = 0;
@@ -17,7 +17,7 @@ public class ResizeImage {
     private final int thumbHeight;
     private final BufferedImage inputImage;
 
-    public ResizeImage(int thumbWidth, int thumbHeight, File inputFile) throws IOException {
+    public ImageResizer(int thumbWidth, int thumbHeight, File inputFile) throws IOException {
         this.thumbWidth = thumbWidth;
         this.thumbHeight = thumbHeight;
         this.inputImage = ImageIO.read(inputFile);

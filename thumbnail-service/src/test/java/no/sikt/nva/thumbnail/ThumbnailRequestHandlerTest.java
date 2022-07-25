@@ -115,8 +115,8 @@ class ThumbnailRequestHandlerTest {
                                                ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT);
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(
             PutObjectResponse.builder().build());
-        verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
         assertDoesNotThrow(() -> handler.handleRequest(s3Event, CONTEXT));
+        verify(s3Client, times(2)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 
 
@@ -126,8 +126,8 @@ class ThumbnailRequestHandlerTest {
                                                TINY_IMAGE);
         when(s3Client.putObject(any(PutObjectRequest.class), any(RequestBody.class))).thenReturn(
             PutObjectResponse.builder().build());
-        verify(s3Client, times(1)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
         assertDoesNotThrow(() -> handler.handleRequest(s3Event, CONTEXT));
+        verify(s3Client, times(2)).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     }
 
 
