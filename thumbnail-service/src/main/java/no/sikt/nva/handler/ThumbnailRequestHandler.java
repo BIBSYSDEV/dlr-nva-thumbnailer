@@ -6,6 +6,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.S3Event;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import no.sikt.nva.thumbnail.ThumbnailerException;
 import no.sikt.nva.thumbnail.ThumbnailerManager;
@@ -21,9 +22,10 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
+public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
 
     public static final String COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE = "Could not create thumbnail";
     public static final String CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE = "Currently Supporting the "
@@ -31,6 +33,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
     public static final String FILENAME_PREFIX = "filename=\"";
     public static final String FILENAME_POSTFIX = "\"";
     public static final String DELIMITER = ", ";
+    public static final String IMAGE_PNG_MIME_TYPE = "image/png";
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailRequestHandler.class);
     // protects against overwriting existing files in
     // directory, plus it's the only place aws allows filewriting; To view thumbnails created locally: replace with
@@ -53,7 +56,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
     }
 
     @Override
-    public Void handleRequest(S3Event s3Event, Context context) {
+    public URL handleRequest(S3Event s3Event, Context context) {
         var objectKey = getObjectKey(s3Event);
         var inputFile = readFile(s3Event, objectKey);
         var outputFile = generateThumbnail(inputFile);
@@ -61,7 +64,12 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
         writeThumbnailToS3(outputFile, objectKey);
         outputFile.deleteOnExit();
         inputFile.deleteOnExit();
-        return null;
+        return getThumbnailUrl(objectKey);
+    }
+
+    private URL getThumbnailUrl(String objectKey) {
+        GetUrlRequest request = GetUrlRequest.builder().bucket(thumbnailBucketName).key(objectKey).build();
+        return s3Client.utilities().getUrl(request);
     }
 
     private void writeThumbnailToS3(File outputFile, String objectKey) {
@@ -69,6 +77,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
             s3Client.putObject(PutObjectRequest.builder()
                                    .bucket(thumbnailBucketName)
                                    .key(objectKey)
+                                   .contentType(IMAGE_PNG_MIME_TYPE)
                                    .build(), RequestBody.fromFile(outputFile));
         } catch (RuntimeException e) {
             logger.warn(e.getMessage());
@@ -106,7 +115,6 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, Void> {
         logger.warn(failure.getException().getMessage());
         throw new RuntimeException(failure.getException());
     }
-
 
     private File readResponseAndRetrieveMimeType(ResponseInputStream<GetObjectResponse> response) {
         mimeTypeFromS3Response = response.response().contentType();
