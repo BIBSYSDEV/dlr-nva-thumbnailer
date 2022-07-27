@@ -86,21 +86,20 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
     }
 
     private File generateThumbnail(File inputFile) {
-        var supportedMimeTypes = StringUtils.EMPTY_STRING;
         try (var thumbnailerManager = new ThumbnailerManager()) {
-            supportedMimeTypes = String.join(DELIMITER, thumbnailerManager.getAcceptedMimeTypes());
+            var supportedMimeTypes = String.join(DELIMITER, thumbnailerManager.getAcceptedMimeTypes());
+            logCurrentSupportedMimeTypes(supportedMimeTypes);
             var outPutFile = new File(INPUT_FILE_NAME_PREFIX + OUTPUT_FILE_NAME);
             thumbnailerManager.generateThumbnail(inputFile, outPutFile, mimeTypeFromS3Response);
             return outPutFile;
         } catch (IOException | ThumbnailerException e) {
-            logCurrentSupportedMimeTypes(supportedMimeTypes);
             logger.warn(COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE);
             throw new RuntimeException(e);
         }
     }
 
     private void logCurrentSupportedMimeTypes(String supportedMimeTypes) {
-        logger.info(CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE + supportedMimeTypes);
+        logger.debug(CURRENTLY_SUPPORTING_THE_FOLLOWING_MIME_TYPES_LOG_MESSAGE + supportedMimeTypes);
     }
 
     private File readFile(S3Event s3Event, String objectKey) {
