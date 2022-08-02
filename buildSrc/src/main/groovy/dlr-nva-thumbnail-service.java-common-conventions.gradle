@@ -70,7 +70,6 @@ tasks.withType(Checkstyle) {
     }
 }
 
-
 check.dependsOn jacocoTestCoverageVerification
 jacocoTestCoverageVerification.dependsOn(jacocoTestReport)
 

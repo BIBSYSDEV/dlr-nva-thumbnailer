@@ -4,6 +4,14 @@ dependencies {
     implementation libs.nva.core
     implementation libs.nva.apigateway
     implementation libs.bundles.logging
+    implementation libs.nva.s3
+    implementation libs.aws.java.sdk2.s3
+    implementation libs.aws.lambda.java.core
+    implementation libs.aws.lambda.events
 
     testImplementation libs.nva.testutils
+}
+
+test {
+    environment "THUMBNAIL_BUCKET", "dlr-nva-thumbnails"
 }
