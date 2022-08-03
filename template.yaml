@@ -58,7 +58,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: thumbnail-service
-      Handler: no.sikt.nva.thumbnail.ThumbnailRequestHandler::handleRequest
+      Handler: no.sikt.nva.handler.ThumbnailRequestHandler::handleRequest
       Role: !GetAtt DlrNvaThumbnailServiceRole.Arn
       Environment:
         Variables:
