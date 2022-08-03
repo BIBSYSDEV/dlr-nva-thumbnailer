@@ -6,11 +6,11 @@ Description: >
 Parameters:
   FileUploadBucketName:
     Type: String
-    Default: !Sub 'nva-resource-storage-${AWS::AccountId}'
+    Default: 'nva-resource-storage'
     Description: Name of input bucket. Files uploaded here will be used as input for this lambda.
   ThumbnailOutputBucketName:
     Type: String
-    Default: !Sub 'dlr-nva-thumbnails-${AWS::AccountId}'
+    Default: 'dlr-nva-thumbnails'
     Description: Name of output bucket. Thumbnails created by this function will be stored here. This bucket is also setup to be public read.
 
 Resources:
@@ -43,7 +43,7 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${FileUploadBucketName}*'
+                  - !Sub 'arn:aws:s3:::${FileUploadBucketName}-${AWS::AccountId}*'
         - policyName: uploadThumbnailPolicy
           PolicyDocument:
             Version: 2012-10-17
@@ -52,7 +52,7 @@ Resources:
                 Action:
                   - s3:putObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}*'
+                  - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}-${AWS::AccountId}*'
 
   DlrNvaThumbnailServiceFunction:
     Type: AWS::Serverless::Function
@@ -62,14 +62,14 @@ Resources:
       Role: !GetAtt DlrNvaThumbnailServiceRole.Arn
       Environment:
         Variables:
-          THUMBNAIL_BUCKET: !Ref ThumbnailOutputBucketName
+          THUMBNAIL_BUCKET: !Sub '${ThumbnailOutputBucketName}-${AWS::AccountId}'
       Runtime: java11
       MemorySize: 10240
       Events:
         FileUploadedEvent:
           Type: S3
           Properties:
-            Bucket: !Ref FileUploadBucketName
+            Bucket: !Sub '${FileUploadBucketName}-${AWS::AccountId}'
             Events: 's3:ObjectCreated:*'
 
   ThumbnailBucket:
