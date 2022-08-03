@@ -6,11 +6,11 @@ Description: >
 Parameters:
   FileUploadBucketName:
     Type: String
-    Default: !Sub 'nva-resource-storage-${AWS::AccountId}'
+    Default: 'dlr-nva-input-thumbnail-files'
     Description: Name of input bucket. Files uploaded here will be used as input for this lambda.
   ThumbnailOutputBucketName:
     Type: String
-    Default: !Sub 'dlr-nva-thumbnails-${AWS::AccountId}'
+    Default: 'dlr-nva-thumbnails'
     Description: Name of output bucket. Thumbnails created by this function will be stored here. This bucket is also setup to be public read.
   FfmpegLambdaVersion:
     Type: String
@@ -39,7 +39,7 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - policyName: getInputFilePolicy
+        - PolicyName: getInputFilePolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -47,8 +47,8 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${FileUploadBucketName}*'
-        - policyName: uploadThumbnailPolicy
+                  - !Sub 'arn:aws:s3:::${FileUploadBucketName}-${AWS::AccountId}*'
+        - PolicyName: uploadThumbnailPolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -56,7 +56,7 @@ Resources:
                 Action:
                   - s3:putObject
                 Resource:
-                  - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}*'
+                  - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}-${AWS::AccountId}*'
 
   FfmpegLambdaLayer:
     Type: AWS::Serverless::Application
@@ -69,18 +69,18 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: thumbnail-service
-      Handler: no.sikt.nva.thumbnail.ThumbnailRequestHandler::handleRequest
+      Handler: no.sikt.nva.handler.ThumbnailRequestHandler::handleRequest
       Role: !GetAtt DlrNvaThumbnailServiceRole.Arn
       Environment:
         Variables:
-          THUMBNAIL_BUCKET: !Ref ThumbnailOutputBucketName
+          THUMBNAIL_BUCKET: !Sub '${ThumbnailOutputBucketName}-${AWS::AccountId}'
       Runtime: java11
       MemorySize: 10240
       Events:
         FileUploadedEvent:
           Type: S3
           Properties:
-            Bucket: !Ref FileUploadBucketName
+            Bucket: !Ref   InputFileBucket
             Events: 's3:ObjectCreated:*'
       Layers:
         - !GetAtt   FfmpegLambdaLayer.Outputs.LayerVersion
@@ -88,5 +88,11 @@ Resources:
   ThumbnailBucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
-      BucketName: !Ref ThumbnailOutputBucketName
+      AccessControl: Private
+      BucketName: !Sub "${ThumbnailOutputBucketName}-${AWS::AccountId}"
+
+  InputFileBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub "${FileUploadBucketName}-${AWS::AccountId}"
