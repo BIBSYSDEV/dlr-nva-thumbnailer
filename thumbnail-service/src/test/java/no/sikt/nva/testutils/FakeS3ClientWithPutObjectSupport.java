@@ -19,22 +19,42 @@ public class FakeS3ClientWithPutObjectSupport extends FakeS3Client {
 
     public static final String PATH_DELIMITER = "/";
     private static final String CONTENT_DISPOSITION = "filename=\"%s\"";
-    private final String contentDisposition;
     private final String mimeType;
     private final InputStream getObjectStream;
+    private final boolean shouldHaveContentDisposition;
+    private final String filename;
 
-    public FakeS3ClientWithPutObjectSupport(String filename, String path, String mimeType) {
+    public FakeS3ClientWithPutObjectSupport(String filename, String path, String mimeType,
+                                            Boolean shouldHaveContentDisposition) {
         super();
         this.mimeType = mimeType;
-        this.contentDisposition = String.format(CONTENT_DISPOSITION, filename);
         this.getObjectStream = IoUtils.inputStreamFromResources(path + PATH_DELIMITER + filename);
+        this.shouldHaveContentDisposition = shouldHaveContentDisposition;
+        this.filename = filename;
+    }
+
+    public FakeS3ClientWithPutObjectSupport(String filename, String path, String mimeType) {
+        this(filename, path, mimeType, true);
     }
 
     @Override
     public ResponseInputStream getObject(GetObjectRequest getObjectRequest) {
-        return new ResponseInputStream<>(
-            GetObjectResponse.builder().contentDisposition(contentDisposition).contentType(mimeType).build(),
-            AbortableInputStream.create(getObjectStream));
+        return shouldHaveContentDisposition
+                   ? new ResponseInputStream<>(
+            GetObjectResponse
+                .builder()
+                .contentDisposition(generateContentDisposition())
+                .contentType(mimeType)
+                .build(),
+            AbortableInputStream
+                .create(getObjectStream))
+                   : new ResponseInputStream<>(
+                       GetObjectResponse
+                           .builder()
+                           .contentType(mimeType)
+                           .build(),
+                       AbortableInputStream.create(
+                           getObjectStream));
     }
 
     @Override
@@ -56,5 +76,9 @@ public class FakeS3ClientWithPutObjectSupport extends FakeS3Client {
     @Override
     public void close() {
 
+    }
+
+    private String generateContentDisposition() {
+        return String.format(CONTENT_DISPOSITION, filename);
     }
 }

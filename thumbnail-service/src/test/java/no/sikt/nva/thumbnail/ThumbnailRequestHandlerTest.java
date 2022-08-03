@@ -130,6 +130,19 @@ class ThumbnailRequestHandlerTest {
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
 
+    @Test
+    void shouldHandleFilesWithoutContentDisposition() throws IOException {
+        var s3Path = randomS3Path();
+        var expectedThumbnailURL = craftExpectedURL(s3Path);
+        var shouldHaveContentDisposition = false;
+        var s3Client = new FakeS3ClientWithPutObjectSupport(TINY_IMAGE, IMAGES_PATH, PNG_MIME_TYPE, shouldHaveContentDisposition);
+        var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + TINY_IMAGE,
+                                               s3Client, s3Path);
+        var handler = new ThumbnailRequestHandler(s3Client);
+        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
+        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
+    }
+
     private URL craftExpectedURL(UnixPath s3Path) throws MalformedURLException {
         return new URL(String.format(THUMBNAIL_URI_TEMPLATE_STRING,
                                      THUMBNAIL_BUCKET_NAME,

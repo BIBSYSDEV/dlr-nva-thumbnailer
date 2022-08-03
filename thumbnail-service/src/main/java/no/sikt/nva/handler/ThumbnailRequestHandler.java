@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Objects;
 import no.sikt.nva.thumbnail.ThumbnailerException;
 import no.sikt.nva.thumbnail.ThumbnailerManager;
 import no.unit.nva.s3.S3Driver;
@@ -34,6 +35,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
     public static final String FILENAME_POSTFIX = "\"";
     public static final String DELIMITER = ", ";
     public static final String IMAGE_PNG_MIME_TYPE = "image/png";
+    public static final String DEFAULT_FILENAME = "thumbnailinput";
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailRequestHandler.class);
     // protects against overwriting existing files in
     // directory, plus it's the only place aws allows filewriting; To view thumbnails created locally: replace with
@@ -126,11 +128,16 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
         }
         return inputFile;
     }
-
+    
     private String determineFileName(ResponseInputStream<GetObjectResponse> responseInputStream) {
-        return INPUT_FILE_NAME_PREFIX
-               + responseInputStream.response().contentDisposition().replace(
-            FILENAME_PREFIX, StringUtils.EMPTY_STRING).replace(FILENAME_POSTFIX, StringUtils.EMPTY_STRING);
+        return Objects.nonNull(responseInputStream.response().contentDisposition())
+                   ? INPUT_FILE_NAME_PREFIX
+                     + responseInputStream
+                           .response()
+                           .contentDisposition()
+                           .replace(FILENAME_PREFIX, StringUtils.EMPTY_STRING)
+                           .replace(FILENAME_POSTFIX, StringUtils.EMPTY_STRING)
+                   : INPUT_FILE_NAME_PREFIX + DEFAULT_FILENAME;
     }
 
     private GetObjectRequest createObjectRequest(String objectKey, String bucketName) {
