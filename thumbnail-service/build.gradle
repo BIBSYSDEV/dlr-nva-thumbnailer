@@ -8,6 +8,7 @@ dependencies {
     implementation libs.aws.java.sdk2.s3
     implementation libs.aws.lambda.java.core
     implementation libs.aws.lambda.events
+    implementation libs.bramp.ffmpeg
 
     testImplementation libs.nva.testutils
 }

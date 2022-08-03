@@ -10,6 +10,7 @@ awsSesSDk = '1.12.254'
 awsSdk2Version = "2.17.191"
 awsLambdaCore = '1.2.1'
 awsLambdaEvents = '3.11.0'
+ffmpeg = '0.7.0'
 
 [libraries]
 nva-core = { group = "com.github.bibsysdev", name = "core", version.ref = "nva" }
@@ -36,6 +37,7 @@ aws-java-sdk2-s3 = { group = "software.amazon.awssdk", name = "s3", version.ref 
 aws-lambda-java-core = { group = "com.amazonaws", name = "aws-lambda-java-core", version.ref = "awsLambdaCore" }
 aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
 
+bramp-ffmpeg = {group = 'net.bramp.ffmpeg', name = 'ffmpeg', version.ref = 'ffmpeg'}
 
 [bundles]
 testing = ["mockito-core", "hamcrest-base", "hamcrest-core", "junit-jupiter-engine", "junit-jupiter-params",

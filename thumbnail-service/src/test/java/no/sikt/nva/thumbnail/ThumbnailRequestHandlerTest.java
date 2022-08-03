@@ -56,11 +56,28 @@ class ThumbnailRequestHandlerTest {
     private static final String ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT = "correct-size.png";
     private static final String THUMBNAIL_URI_TEMPLATE_STRING = "https://%s.s3.%s.amazonaws.com/%s";
     private static final String THUMBNAIL_BUCKET_NAME = "dlr-nva-thumbnails";
+    private static final String QUICK_TIME_MOVIE_FILENAME = "quickTimeWindow.mov";
+    private static final String QUICK_TIME_MIME_TYPE = "video/quicktime";
+    private static final String MOVIE_PATH = "videos";
     private TestAppender appender;
+
+
 
     @BeforeEach
     public void init() {
         this.appender = LogUtils.getTestingAppenderForRootLogger();
+    }
+
+    @Test
+    public void shouldBeAbleToConvertQuickTimeMovie() throws IOException {
+        var s3Path = randomS3Path();
+        var expectedThumbnailURL = craftExpectedURL(s3Path);
+        var s3Client = new FakeS3ClientWithPutObjectSupport(QUICK_TIME_MOVIE_FILENAME, MOVIE_PATH, QUICK_TIME_MIME_TYPE);
+        var s3Event = createNewFileUploadEvent(MOVIE_PATH + "/" + QUICK_TIME_MOVIE_FILENAME,
+                                               s3Client, s3Path);
+        var handler = new ThumbnailRequestHandler(s3Client);
+        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
+        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
 
     @Test
