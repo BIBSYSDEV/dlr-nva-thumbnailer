@@ -69,7 +69,7 @@ Resources:
         FileUploadedEvent:
           Type: S3
           Properties:
-            Bucket: !Sub '${FileUploadBucketName}-${AWS::AccountId}'
+            Bucket: !Ref   InputFileBucket
             Events: 's3:ObjectCreated:*'
 
   ThumbnailBucket:
