@@ -6,7 +6,7 @@ Description: >
 Parameters:
   FileUploadBucketName:
     Type: String
-    Default: 'nva-resource-storage'
+    Default: 'dlr-nva-input-files'
     Description: Name of input bucket. Files uploaded here will be used as input for this lambda.
   ThumbnailOutputBucketName:
     Type: String
@@ -76,4 +76,10 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: PublicRead
-      BucketName: !Ref ThumbnailOutputBucketName
+      BucketName: !Sub '${ThumbnailOutputBucketName}-${AWS::AccountId}'
+
+  InputFileBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub '${FileUploadBucketName}-${AWS::AccountId}'
