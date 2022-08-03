@@ -33,6 +33,7 @@ import nva.commons.core.paths.UnixPath;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
@@ -61,19 +62,22 @@ class ThumbnailRequestHandlerTest {
     private static final String MOVIE_PATH = "videos";
     private TestAppender appender;
 
-
-
     @BeforeEach
     public void init() {
         this.appender = LogUtils.getTestingAppenderForRootLogger();
     }
 
+    @Ignore
     @Test
     public void shouldBeAbleToConvertQuickTimeMovie() throws IOException {
         var s3Path = randomS3Path();
         var expectedThumbnailURL = craftExpectedURL(s3Path);
-        var s3Client = new FakeS3ClientWithPutObjectSupport(QUICK_TIME_MOVIE_FILENAME, MOVIE_PATH, QUICK_TIME_MIME_TYPE);
-        var s3Event = createNewFileUploadEvent(MOVIE_PATH + "/" + QUICK_TIME_MOVIE_FILENAME,
+        var s3Client = new FakeS3ClientWithPutObjectSupport(QUICK_TIME_MOVIE_FILENAME,
+                                                            MOVIE_PATH,
+                                                            QUICK_TIME_MIME_TYPE);
+        var s3Event = createNewFileUploadEvent(MOVIE_PATH
+                                               + "/"
+                                               + QUICK_TIME_MOVIE_FILENAME,
                                                s3Client, s3Path);
         var handler = new ThumbnailRequestHandler(s3Client);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
