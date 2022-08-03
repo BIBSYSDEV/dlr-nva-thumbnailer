@@ -6,7 +6,7 @@ Description: >
 Parameters:
   FileUploadBucketName:
     Type: String
-    Default: 'dlr-nva-input-files'
+    Default: 'dlr-nva-input-thumbnail-files'
     Description: Name of input bucket. Files uploaded here will be used as input for this lambda.
   ThumbnailOutputBucketName:
     Type: String
