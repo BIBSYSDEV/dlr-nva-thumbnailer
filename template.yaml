@@ -35,7 +35,7 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*:*'
-        - policyName: getInputFilePolicy
+        - PolicyName: getInputFilePolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -44,7 +44,7 @@ Resources:
                   - s3:GetObject
                 Resource:
                   - !Sub 'arn:aws:s3:::${FileUploadBucketName}-${AWS::AccountId}*'
-        - policyName: uploadThumbnailPolicy
+        - PolicyName: uploadThumbnailPolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
