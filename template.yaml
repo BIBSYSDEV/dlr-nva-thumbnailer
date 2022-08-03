@@ -75,11 +75,11 @@ Resources:
   ThumbnailBucket:
     Type: AWS::S3::Bucket
     Properties:
-      AccessControl: PublicRead
-      BucketName: !Sub '${ThumbnailOutputBucketName}-${AWS::AccountId}'
+      AccessControl: Private
+      BucketName: !Sub "${ThumbnailOutputBucketName}-${AWS::AccountId}"
 
   InputFileBucket:
     Type: AWS::S3::Bucket
     Properties:
       AccessControl: Private
-      BucketName: !Sub '${FileUploadBucketName}-${AWS::AccountId}'
+      BucketName: !Sub "${FileUploadBucketName}-${AWS::AccountId}"
