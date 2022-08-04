@@ -54,13 +54,6 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}-${AWS::AccountId}*'
 
-  ffmpeglambdalayer:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location:
-        ApplicationId: arn:aws:serverlessrepo:us-east-1:145266761615:applications/ffmpeg-lambda-layer
-        SemanticVersion: 1.0.0
-
   DlrNvaThumbnailServiceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -79,7 +72,7 @@ Resources:
             Bucket: !Ref   InputFileBucket
             Events: 's3:ObjectCreated:*'
       Layers:
-        - !GetAtt ffmpeglambdalayer.Outputs.LayerVersion
+        - arn:aws:lambda:eu-west-1:884807050265:layer:ffmpeg:1
 
   ThumbnailBucket:
     Type: AWS::S3::Bucket
