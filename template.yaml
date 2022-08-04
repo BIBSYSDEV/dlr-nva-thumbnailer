@@ -54,7 +54,7 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}-${AWS::AccountId}*'
 
-  FfmpegLambdaLayer:
+  ffmpeglambdalayer:
     Type: AWS::Serverless::Application
     Properties:
       Location:
@@ -79,7 +79,7 @@ Resources:
             Bucket: !Ref   InputFileBucket
             Events: 's3:ObjectCreated:*'
       Layers:
-        - !GetAtt   FfmpegLambdaLayer.Outputs.LayerVersion
+        - !GetAtt ffmpeglambdalayer.Outputs.LayerVersion
 
   ThumbnailBucket:
     Type: AWS::S3::Bucket
