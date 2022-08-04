@@ -67,6 +67,7 @@ class ThumbnailRequestHandlerTest {
         this.appender = LogUtils.getTestingAppenderForRootLogger();
     }
 
+    /*
     @Ignore
     @Test
     public void shouldBeAbleToConvertQuickTimeMovie() throws IOException {
@@ -83,6 +84,8 @@ class ThumbnailRequestHandlerTest {
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
+
+     */
 
     @Test
     void shouldThrowExceptionWhenCannotUseS3Client() throws IOException {
@@ -156,7 +159,8 @@ class ThumbnailRequestHandlerTest {
         var s3Path = randomS3Path();
         var expectedThumbnailURL = craftExpectedURL(s3Path);
         var shouldHaveContentDisposition = false;
-        var s3Client = new FakeS3ClientWithPutObjectSupport(TINY_IMAGE, IMAGES_PATH, PNG_MIME_TYPE, shouldHaveContentDisposition);
+        var s3Client = new FakeS3ClientWithPutObjectSupport(TINY_IMAGE, IMAGES_PATH, PNG_MIME_TYPE,
+                                                            shouldHaveContentDisposition);
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + TINY_IMAGE,
                                                s3Client, s3Path);
         var handler = new ThumbnailRequestHandler(s3Client);
