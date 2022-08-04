@@ -73,6 +73,7 @@ Resources:
             Events: 's3:ObjectCreated:*'
       Layers:
         - arn:aws:lambda:eu-west-1:884807050265:layer:ffmpeg:1
+      Timeout: 900
 
   ThumbnailBucket:
     Type: AWS::S3::Bucket
