@@ -21,8 +21,8 @@ public class FFMpegThumbnailer extends AbstractThumbnailer {
 
         //according to https://github.com/serverlesspub/ffmpeg-aws-lambda-layer/blob/master/example/src/index.js
         // ffmpeg is accessed in the lambda layer by path "/opt/bin/ffmpeg"
-        FFmpeg ffmpeg = new FFmpeg("/usr/bin/ffmpeg");
-        FFprobe ffprobe = new FFprobe("/usr/bin/ffprobe");
+        FFmpeg ffmpeg = new FFmpeg("/opt/bin/ffmpeg");
+        FFprobe ffprobe = new FFprobe("/opt/bin/ffprobe");
         File partiallyProcessed = new File(TMP_VIDEOSNAP_PNG);
         FFmpegBuilder builder = new FFmpegBuilder()
                                     .setInput(input.getAbsolutePath())     // Filename, or a FFmpegProbeResult
