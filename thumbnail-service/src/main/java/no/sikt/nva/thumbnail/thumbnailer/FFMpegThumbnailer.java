@@ -3,6 +3,7 @@ package no.sikt.nva.thumbnail.thumbnailer;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import net.bramp.ffmpeg.FFmpeg;
 import net.bramp.ffmpeg.FFmpegExecutor;
 import net.bramp.ffmpeg.FFprobe;
@@ -28,6 +29,7 @@ public class FFMpegThumbnailer extends AbstractThumbnailer {
                                     .setInput(input.getAbsolutePath())     // Filename, or a FFmpegProbeResult
                                     .overrideOutputFiles(true) // Override the output if it exists
                                     .addOutput(partiallyProcessed.getAbsolutePath())   // Filename for the destination
+                                    .setStartOffset(3, TimeUnit.SECONDS)
                                     .setFrames(1)
                                     .done();
 
