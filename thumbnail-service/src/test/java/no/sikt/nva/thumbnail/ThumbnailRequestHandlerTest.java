@@ -27,13 +27,15 @@ import no.sikt.nva.handler.ThumbnailRequestHandler;
 import no.sikt.nva.testutils.FakeS3ClientThrowingExceptionOnGetObject;
 import no.sikt.nva.testutils.FakeS3ClientThrowingExceptionOnPutObject;
 import no.sikt.nva.testutils.FakeS3ClientWithPutObjectSupport;
+import no.sikt.nva.testutils.thumbnailer.FakeFFmpeg;
+import no.sikt.nva.testutils.thumbnailer.FakeFFprobe;
+import no.sikt.nva.thumbnail.thumbnailer.ThumbnailerInitializer;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
 import nva.commons.core.paths.UriWrapper;
 import nva.commons.logutils.LogUtils;
 import nva.commons.logutils.TestAppender;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.regions.Region;
@@ -62,13 +64,17 @@ class ThumbnailRequestHandlerTest {
     private static final String MOVIE_PATH = "videos";
     private TestAppender appender;
 
+    private ThumbnailerInitializer thumbnailerInitializer;
+
     @BeforeEach
-    public void init() {
+    public void init() throws IOException {
         this.appender = LogUtils.getTestingAppenderForRootLogger();
+        this.thumbnailerInitializer = new ThumbnailerInitializer.Builder()
+                                          .withFFmpeg(new FakeFFmpeg())
+                                          .withFFprobe(new FakeFFprobe())
+                                          .build();
     }
 
-    /*
-    @Ignore
     @Test
     public void shouldBeAbleToConvertQuickTimeMovie() throws IOException {
         var s3Path = randomS3Path();
@@ -80,19 +86,17 @@ class ThumbnailRequestHandlerTest {
                                                + "/"
                                                + QUICK_TIME_MOVIE_FILENAME,
                                                s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
-
-     */
 
     @Test
     void shouldThrowExceptionWhenCannotUseS3Client() throws IOException {
         var expectedMessage = randomString();
         var s3Client = new FakeS3ClientThrowingExceptionOnGetObject(expectedMessage);
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + JPEG_FILE, s3Client);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
         assertThat(appender.getMessages(), containsString(expectedMessage));
     }
@@ -102,7 +106,7 @@ class ThumbnailRequestHandlerTest {
         var s3Client = new FakeS3ClientWithPutObjectSupport(ZIP_FILE, UNSUPPORTED_FILES_PATH, ZIP_MIME_TYPE);
         var s3Event = createNewFileUploadEvent(UNSUPPORTED_FILES_PATH + "/" + ZIP_FILE,
                                                s3Client);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
         assertThat(appender.getMessages(), containsString(COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE));
     }
@@ -113,7 +117,7 @@ class ThumbnailRequestHandlerTest {
         var s3Client = new FakeS3ClientThrowingExceptionOnPutObject(expectedMessage, JPEG_FILE, JPEG_MIME_TYPE,
                                                                     IMAGES_PATH);
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + JPEG_FILE, s3Client);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
         assertThat(appender.getMessages(), containsString(expectedMessage));
     }
@@ -124,7 +128,7 @@ class ThumbnailRequestHandlerTest {
         var expectedThumbnailURL = craftExpectedURL(s3Path);
         var s3Client = new FakeS3ClientWithPutObjectSupport(JPEG_FILE, IMAGES_PATH, JPEG_MIME_TYPE);
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + JPEG_FILE, s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
@@ -137,7 +141,7 @@ class ThumbnailRequestHandlerTest {
                                                             PNG_MIME_TYPE);
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT,
                                                s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
@@ -149,7 +153,7 @@ class ThumbnailRequestHandlerTest {
         var s3Client = new FakeS3ClientWithPutObjectSupport(TINY_IMAGE, IMAGES_PATH, PNG_MIME_TYPE);
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + TINY_IMAGE,
                                                s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
@@ -163,7 +167,7 @@ class ThumbnailRequestHandlerTest {
                                                             shouldHaveContentDisposition);
         var s3Event = createNewFileUploadEvent(IMAGES_PATH + "/" + TINY_IMAGE,
                                                s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }

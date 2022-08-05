@@ -10,20 +10,23 @@ import net.bramp.ffmpeg.FFprobe;
 import net.bramp.ffmpeg.builder.FFmpegBuilder;
 import no.sikt.nva.thumbnail.AbstractThumbnailer;
 import no.sikt.nva.thumbnail.util.ImageResizer;
-import nva.commons.core.JacocoGenerated;
 
 public class FFMpegThumbnailer extends AbstractThumbnailer {
 
+    private final FFmpeg ffmpeg;
+    private final FFprobe ffprobe;
+
     public static final String TMP_VIDEOSNAP_PNG = "/tmp/videosnap.png";
 
-    @JacocoGenerated
+    public FFMpegThumbnailer(FFmpeg ffmpeg, FFprobe ffprobe) {
+        super();
+        this.ffmpeg = ffmpeg;
+        this.ffprobe = ffprobe;
+    }
+
     @Override
     public void generateThumbnail(File input, File output) throws IOException {
 
-        //according to https://github.com/serverlesspub/ffmpeg-aws-lambda-layer/blob/master/example/src/index.js
-        // ffmpeg is accessed in the lambda layer by path "/opt/bin/ffmpeg"
-        FFmpeg ffmpeg = new FFmpeg("/opt/bin/ffmpeg");
-        FFprobe ffprobe = new FFprobe("/opt/bin/ffprobe");
         File partiallyProcessed = new File(TMP_VIDEOSNAP_PNG);
         FFmpegBuilder builder = new FFmpegBuilder()
                                     .setInput(input.getAbsolutePath())     // Filename, or a FFmpegProbeResult
@@ -61,7 +64,6 @@ public class FFMpegThumbnailer extends AbstractThumbnailer {
         );
     }
 
-    @JacocoGenerated
     private void resizeToThumbnailSpecs(File partiallyProcessed, File output) throws IOException {
         ImageResizer imageResizer = new ImageResizer(thumbWidth, thumbHeight, partiallyProcessed);
         imageResizer.writeThumbnailToFile(output);

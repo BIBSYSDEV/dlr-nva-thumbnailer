@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.util.Objects;
 import no.sikt.nva.thumbnail.ThumbnailerException;
 import no.sikt.nva.thumbnail.ThumbnailerManager;
+import no.sikt.nva.thumbnail.thumbnailer.ThumbnailerInitializer;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.Environment;
 import nva.commons.core.JacocoGenerated;
@@ -45,16 +46,21 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
     private static final String THUMBNAIL_BUCKET_ENVIRONMENT_FIELD = "THUMBNAIL_BUCKET";
     private final String thumbnailBucketName;
     private final S3Client s3Client;
+    private final ThumbnailerInitializer thumbnailerInitializer;
     private String mimeTypeFromS3Response;
 
     @JacocoGenerated
     public ThumbnailRequestHandler() {
-        this(S3Driver.defaultS3Client().build());
+        this(
+            S3Driver.defaultS3Client().build(),
+            new ThumbnailerInitializer.Builder().build()
+        );
     }
 
-    public ThumbnailRequestHandler(S3Client s3Client) {
+    public ThumbnailRequestHandler(S3Client s3Client, ThumbnailerInitializer thumbnailerInitializer) {
         this.thumbnailBucketName = new Environment().readEnv(THUMBNAIL_BUCKET_ENVIRONMENT_FIELD);
         this.s3Client = s3Client;
+        this.thumbnailerInitializer = thumbnailerInitializer;
     }
 
     @Override
@@ -88,7 +94,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
     }
 
     private File generateThumbnail(File inputFile) {
-        try (var thumbnailerManager = new ThumbnailerManager()) {
+        try (var thumbnailerManager = new ThumbnailerManager(thumbnailerInitializer)) {
             var supportedMimeTypes = String.join(DELIMITER, thumbnailerManager.getAcceptedMimeTypes());
             logCurrentSupportedMimeTypes(supportedMimeTypes);
             var outPutFile = new File(INPUT_FILE_NAME_PREFIX + OUTPUT_FILE_NAME);
@@ -128,7 +134,7 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
         }
         return inputFile;
     }
-    
+
     private String determineFileName(ResponseInputStream<GetObjectResponse> responseInputStream) {
         return Objects.nonNull(responseInputStream.response().contentDisposition())
                    ? INPUT_FILE_NAME_PREFIX
