@@ -26,7 +26,7 @@ public class FFMpegThumbnailer extends AbstractThumbnailer {
 
     @Override
     public void generateThumbnail(File input, File output) throws IOException {
-
+        //
         File partiallyProcessed = new File(TMP_VIDEOSNAP_PNG);
         FFmpegBuilder builder = new FFmpegBuilder()
                                     .setInput(input.getAbsolutePath())     // Filename, or a FFmpegProbeResult
