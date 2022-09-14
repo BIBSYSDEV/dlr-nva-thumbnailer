@@ -6,6 +6,8 @@ phases:
       java: corretto11
     commands:
       - pip3 install aws-sam-cli
+  pre_build:
+    - aws --version
   build:
     commands:
       - sam build
