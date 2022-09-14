@@ -12,6 +12,9 @@ Parameters:
     Type: String
     Default: 'dlr-nva-thumbnails'
     Description: Name of output bucket. Thumbnails created by this function will be stored here. This bucket is also setup to be public read.
+  FfmpegLambdaLayer:
+    Type: String
+    Description: ARN of the FFMPEG lambda layer created in the buildspec.yml
 
 Resources:
   DlrNvaThumbnailServiceRole:
@@ -54,13 +57,6 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::${ThumbnailOutputBucketName}-${AWS::AccountId}*'
 
-  ffmpeglambdalayer:
-    Type: AWS::Serverless::Application
-    Properties:
-      Location:
-        ApplicationId: arn:aws:serverlessrepo:eu-west-1:145266761615:applications/ffmpeg-lambda-layer
-        SemanticVersion: 1.0.0
-
   DlrNvaThumbnailServiceFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -79,7 +75,7 @@ Resources:
             Bucket: !Ref   InputFileBucket
             Events: 's3:ObjectCreated:*'
       Layers:
-        - !GetAtt ffmpeglambdalayer.Outputs.LayerVersion
+        - !Ref   FfmpegLambdaLayer
       Timeout: 900
 
   ThumbnailBucket:
