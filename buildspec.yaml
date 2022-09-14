@@ -11,7 +11,8 @@ phases:
       - aws --version
   build:
     commands:
-      - aws serverlessrepo get-application --application-id arn:aws:serverlessrepo:us-east-1:145266761615:applications/ffmpeg-lambda-layer
+      - Nightmare = aws serverlessrepo get-application --application-id arn:aws:serverlessrepo:us-east-1:145266761615:applications/ffmpeg-lambda-layer
+      - echo ${Nightmare}
       - sam build
       - sam package --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
   post_build:
