@@ -18,7 +18,7 @@ Resources:
     Type: AWS::Serverless::Application
     Properties:
       Location:
-        ApplicationId: arn:aws:serverlessrepo:us-west-1:145266761615:applications/ffmpeg-lambda-layer
+        ApplicationId: arn:aws:serverlessrepo:eu-west-1:145266761615:applications/ffmpeg-lambda-layer
         SemanticVersion: 1.0.0
 
   DlrNvaThumbnailServiceRole:
