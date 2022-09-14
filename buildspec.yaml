@@ -8,10 +8,8 @@ phases:
       - pip3 install aws-sam-cli
   build:
     commands:
-      - LAYER_STACK_NAME = ffmpeg-lambda-layer
-      - FFMPEG_LAMBDA_LAYER = $(aws cloudformation describe-stacks --stack-name $(LAYER_STACK_NAME) --query Stacks[].Outputs[].OutputValue --output text)
       - sam build
-      - sam package --parameter-overrides ParameterKey=FfmpegLambdaLayer,ParameterValue=${FFMPEG_LAMBDA_LAYER} --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
+      - sam package --s3-bucket $S3_BUCKET --output-template-file packaged_raw.yaml
   post_build:
     commands:
       # Use timestamp to force update of ApiGatewayCreateDeploymentCustomResource
