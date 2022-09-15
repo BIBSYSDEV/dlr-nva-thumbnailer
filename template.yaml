@@ -12,14 +12,23 @@ Parameters:
     Type: String
     Default: 'dlr-nva-thumbnails'
     Description: Name of output bucket. Thumbnails created by this function will be stored here. This bucket is also setup to be public read.
+  FfmpegLambdaLayerApplicationID:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: 'FfmpegLambdaLayerApplicationID'
+    Description: Name of arn of the ffmpeg layer from the serverless repository.
+  FfmpegLambdaLayerVersion:
+    Type: 'AWS::SSM::Parameter::Value<String>'
+    Default: 'FfmpegLambdaLayerVersion'
+    Description: Version of the ffmpeg layer from the serverless repository used.
 
 Resources:
+
   ffmpeglambdalayer:
     Type: AWS::Serverless::Application
     Properties:
       Location:
-        ApplicationId: arn:aws:serverlessrepo:us-east-1:145266761615:applications/ffmpeg-lambda-layer
-        SemanticVersion: 1.0.0
+        ApplicationId: !Ref FfmpegLambdaLayerApplicationID
+        SemanticVersion: !Ref FfmpegLambdaLayerVersion
 
 
   DlrNvaThumbnailServiceRole:
