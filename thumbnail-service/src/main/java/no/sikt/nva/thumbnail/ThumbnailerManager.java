@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import no.sikt.nva.thumbnail.thumbnailer.FFMpegThumbnailer;
 import no.sikt.nva.thumbnail.thumbnailer.NativeImageThumbnailer;
+import no.sikt.nva.thumbnail.thumbnailer.ThumbnailerInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,8 +19,9 @@ public class ThumbnailerManager implements Closeable {
     private static final Logger logger = LoggerFactory.getLogger(ThumbnailerManager.class);
     private final List<Thumbnailer> thumbnailers;
 
-    public ThumbnailerManager() {
-        this.thumbnailers = List.of(new NativeImageThumbnailer());
+    public ThumbnailerManager(ThumbnailerInitializer thumbnailerInitializer) {
+        this.thumbnailers = List.of(new NativeImageThumbnailer(),
+                                    new FFMpegThumbnailer(thumbnailerInitializer));
     }
 
     public void generateThumbnail(File input, File output, String mimeType) throws IOException, ThumbnailerException {
