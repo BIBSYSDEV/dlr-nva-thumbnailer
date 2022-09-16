@@ -4,6 +4,6 @@
 
 An AWS lambda function for creating thumbnails from various file formats.
 
-## Special thanks:
+## Special thanks
 
 The files in src/main/thumbnail/.* are based on Benjamin Pick's [java-thumbnailer](https://github.com/benjaminpick/java-thumbnailer).
