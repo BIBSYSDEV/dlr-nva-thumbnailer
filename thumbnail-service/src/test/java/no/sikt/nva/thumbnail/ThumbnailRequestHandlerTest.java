@@ -63,6 +63,9 @@ class ThumbnailRequestHandlerTest {
     private static final String QUICK_TIME_MOVIE_FILENAME = "quickTimeWindow.mov";
     private static final String QUICK_TIME_MIME_TYPE = "video/quicktime";
     private static final String MOVIE_PATH = "videos";
+    private static final String DOCUMENTS_PATH = "documents";
+    private static final String PDF_FILENAME = "wireframe.pdf";
+    private static final String PDF_MIMETYPE = "application/pdf";
     private TestAppender appender;
 
     private ThumbnailerInitializer thumbnailerInitializer;
@@ -76,6 +79,22 @@ class ThumbnailRequestHandlerTest {
                                           .withFFmpeg(new FakeFFmpeg(temporaryFilename))
                                           .withFFprobe(new FakeFFprobe())
                                           .build();
+    }
+
+    @Test
+    public void shouldBeAbleToCreateThumbnailFromPdf() throws IOException {
+        var s3Path = randomS3Path();
+        var expectedThumbnailURL = craftExpectedURL(s3Path);
+        var s3Client = new FakeS3ClientWithPutObjectSupport(PDF_FILENAME,
+                                                            DOCUMENTS_PATH,
+                                                            PDF_MIMETYPE);
+        var s3Event = createNewFileUploadEvent(UnixPath.of(DOCUMENTS_PATH
+                                                           + "/"
+                                                           + PDF_FILENAME),
+                                               s3Client, s3Path);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
+        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
+        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
 
     @Test
