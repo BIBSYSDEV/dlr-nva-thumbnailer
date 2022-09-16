@@ -13,36 +13,25 @@ import no.sikt.nva.thumbnail.util.ImageResizer;
 
 public class FFMpegThumbnailer extends AbstractThumbnailer {
 
+    public static final boolean OVERRIDE_OUTPUT = true;
+    private final File temporaryFileForPartiallyGeneratedResults;
     private final FFmpeg ffmpeg;
     private final FFprobe ffprobe;
 
-    public static final String TMP_VIDEOSNAP_PNG = "/tmp/videosnap.png";
-
-    public FFMpegThumbnailer(FFmpeg ffmpeg, FFprobe ffprobe) {
+    public FFMpegThumbnailer(ThumbnailerInitializer thumbnailerInitializer) {
         super();
-        this.ffmpeg = ffmpeg;
-        this.ffprobe = ffprobe;
+        this.ffmpeg = thumbnailerInitializer.getFFmpeg();
+        this.ffprobe = thumbnailerInitializer.getFFprobe();
+        this.temporaryFileForPartiallyGeneratedResults = new File(
+            thumbnailerInitializer.getPartiallyProcessedFilename());
     }
 
     @Override
     public void generateThumbnail(File input, File output) throws IOException {
-        //
-        File partiallyProcessed = new File(TMP_VIDEOSNAP_PNG);
-        FFmpegBuilder builder = new FFmpegBuilder()
-                                    .setInput(input.getAbsolutePath())     // Filename, or a FFmpegProbeResult
-                                    .overrideOutputFiles(true) // Override the output if it exists
-                                    .addOutput(partiallyProcessed.getAbsolutePath())   // Filename for the destination
-                                    .setStartOffset(3, TimeUnit.SECONDS)
-                                    .setFrames(1)
-                                    .done();
 
-        FFmpegExecutor executor = new FFmpegExecutor(ffmpeg, ffprobe);
-
-        // Run a one-pass encode
-        executor.createJob(builder).run();
-
-        resizeToThumbnailSpecs(partiallyProcessed, output);
-        partiallyProcessed.deleteOnExit();
+        encodeInput(input);
+        resizeToThumbnailSpecs(output);
+        temporaryFileForPartiallyGeneratedResults.deleteOnExit();
     }
 
     //ffmpeg doesn't operate with mimetypes but with formats.
@@ -64,8 +53,31 @@ public class FFMpegThumbnailer extends AbstractThumbnailer {
         );
     }
 
-    private void resizeToThumbnailSpecs(File partiallyProcessed, File output) throws IOException {
-        ImageResizer imageResizer = new ImageResizer(thumbWidth, thumbHeight, partiallyProcessed);
+    private FFmpegBuilder setupEncodingConfiguration(File input) {
+        var fileOrFFmpegProbeResult = input.getAbsolutePath();
+        var destinationFilename = temporaryFileForPartiallyGeneratedResults.getAbsolutePath();
+        return new FFmpegBuilder()
+                   .setInput(fileOrFFmpegProbeResult)
+                   .overrideOutputFiles(OVERRIDE_OUTPUT)
+                   .addOutput(destinationFilename)
+                   .setStartOffset(3, TimeUnit.SECONDS)
+                   .setFrames(1)
+                   .done();
+    }
+
+    private void encodeInput(File input) {
+        var config = setupEncodingConfiguration(input);
+        runOnePassEncode(config);
+    }
+
+    private void runOnePassEncode(FFmpegBuilder builder) {
+        var executor = new FFmpegExecutor(ffmpeg, ffprobe);
+        executor.createJob(builder).run();
+    }
+
+    private void resizeToThumbnailSpecs(File output) throws IOException {
+        ImageResizer imageResizer = new ImageResizer(thumbWidth, thumbHeight,
+                                                     temporaryFileForPartiallyGeneratedResults);
         imageResizer.writeThumbnailToFile(output);
     }
 }

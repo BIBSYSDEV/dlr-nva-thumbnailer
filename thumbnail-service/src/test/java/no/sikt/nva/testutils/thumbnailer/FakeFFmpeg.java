@@ -1,6 +1,5 @@
 package no.sikt.nva.testutils.thumbnailer;
 
-import static no.sikt.nva.thumbnail.thumbnailer.FFMpegThumbnailer.TMP_VIDEOSNAP_PNG;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,9 +15,11 @@ import nva.commons.core.ioutils.IoUtils;
 public class FakeFFmpeg extends FFmpeg {
 
     public static final String JPEG_FILE = "images/pug.jpeg";
+    private final String temporaryFilename;
 
-    public FakeFFmpeg() throws IOException {
+    public FakeFFmpeg(String temporaryFilename) throws IOException {
         super();
+        this.temporaryFilename = temporaryFilename;
     }
 
     @Override
@@ -60,7 +61,7 @@ public class FakeFFmpeg extends FFmpeg {
     }
 
     private void writeToPartiallyProsessedFile() {
-        File partiallyProsessed = new File(TMP_VIDEOSNAP_PNG);
+        File partiallyProsessed = new File(temporaryFilename);
         try (var fileOutputStream = Files.newOutputStream(partiallyProsessed.toPath());
             var mockFile = IoUtils.inputStreamFromResources(JPEG_FILE)) {
             fileOutputStream.write(mockFile.readAllBytes());

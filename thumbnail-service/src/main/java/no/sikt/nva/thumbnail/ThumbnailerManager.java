@@ -21,8 +21,7 @@ public class ThumbnailerManager implements Closeable {
 
     public ThumbnailerManager(ThumbnailerInitializer thumbnailerInitializer) {
         this.thumbnailers = List.of(new NativeImageThumbnailer(),
-                                    new FFMpegThumbnailer(thumbnailerInitializer.getFFmpeg(),
-                                                          thumbnailerInitializer.getFFprobe()));
+                                    new FFMpegThumbnailer(thumbnailerInitializer));
     }
 
     public void generateThumbnail(File input, File output, String mimeType) throws IOException, ThumbnailerException {
