@@ -15,13 +15,13 @@ public class OpenOfficeThumbnailer extends AbstractThumbnailer {
 
     @Override
     public void generateThumbnail(File input, File output) throws IOException, ThumbnailerException {
-        try (final ZipFile zipFile = new ZipFile(input)) {
+        try (ZipFile zipFile = new ZipFile(input)) {
             final ZipEntry entry = zipFile.getEntry("Thumbnails/thumbnail.png");
             if (entry == null) {
                 throw new ThumbnailerException(
                     "Zip file does not contain 'Thumbnails/thumbnail.png' . Is this really an OpenOffice-File?");
             }
-            try (final InputStream in = zipFile.getInputStream(entry)) {
+            try (InputStream in = zipFile.getInputStream(entry)) {
                 final ImageResizer resizer = new ImageResizer(thumbWidth, thumbHeight, in);
                 resizer.writeThumbnailToFile(output);
             }
