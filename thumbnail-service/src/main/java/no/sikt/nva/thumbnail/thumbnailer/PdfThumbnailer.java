@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 import javax.imageio.ImageIO;
 import no.sikt.nva.thumbnail.AbstractThumbnailer;
 import no.sikt.nva.thumbnail.util.ImageResizer;
@@ -19,7 +18,6 @@ public class PdfThumbnailer extends AbstractThumbnailer {
     private static final int DPI = 100;
     private static final String PNG_FILE_FORMAT = "PNG";
     private final File temporaryFileForPartiallyGeneratedResults;
-    private PDDocument document;
 
     public PdfThumbnailer(ThumbnailerInitializer thumbnailerInitializer) {
         super();
@@ -29,9 +27,7 @@ public class PdfThumbnailer extends AbstractThumbnailer {
 
     @Override
     public void generateThumbnail(File input, File output) throws IOException {
-
-        loadPDF(input);
-        encodeInput();
+        encodeInput(input);
         resizeToThumbnailSpecs(output);
         temporaryFileForPartiallyGeneratedResults.deleteOnExit();
     }
@@ -41,15 +37,13 @@ public class PdfThumbnailer extends AbstractThumbnailer {
         return List.of("application/pdf");
     }
 
-    @Override
-    public void close() throws IOException {
-        if (Objects.nonNull(document)) {
-            document.close();
+    private static BufferedImage writeImageFirstPage(File input) throws IOException {
+        try (var document = PDDocument.load(input)) {
+            var pdfRenderer = new PDFRenderer(document);
+            return pdfRenderer.renderImageWithDPI(FIRST_PAGE_INDEX,
+                                                  DPI,
+                                                  ImageType.RGB);
         }
-    }
-
-    private void loadPDF(File input) throws IOException {
-        this.document = PDDocument.load(input);
     }
 
     private void resizeToThumbnailSpecs(File output) throws IOException {
@@ -59,18 +53,10 @@ public class PdfThumbnailer extends AbstractThumbnailer {
         imageResizer.writeThumbnailToFile(output);
     }
 
-    private void encodeInput() throws IOException {
-        var bufferedImage = writeImageFirstPage();
+    private void encodeInput(File input) throws IOException {
+        var bufferedImage = writeImageFirstPage(input);
         ImageIO.write(bufferedImage,
                       PNG_FILE_FORMAT,
                       temporaryFileForPartiallyGeneratedResults);
-    }
-
-    private BufferedImage writeImageFirstPage() throws IOException {
-
-        var pdfRenderer = new PDFRenderer(document);
-        return pdfRenderer.renderImageWithDPI(FIRST_PAGE_INDEX,
-                                              DPI,
-                                              ImageType.RGB);
     }
 }

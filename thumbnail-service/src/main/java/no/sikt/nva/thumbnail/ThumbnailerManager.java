@@ -1,6 +1,5 @@
 package no.sikt.nva.thumbnail;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -8,17 +7,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import no.sikt.nva.thumbnail.thumbnailer.FFMpegThumbnailer;
 import no.sikt.nva.thumbnail.thumbnailer.NativeImageThumbnailer;
-import no.sikt.nva.thumbnail.thumbnailer.PdfThumbnailer;
 import no.sikt.nva.thumbnail.thumbnailer.OpenOfficeThumbnailer;
+import no.sikt.nva.thumbnail.thumbnailer.PdfThumbnailer;
 import no.sikt.nva.thumbnail.thumbnailer.ThumbnailerInitializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class ThumbnailerManager implements Closeable {
+public class ThumbnailerManager {
 
     public static final String NOT_SUPPORTED_MIMETYPE_S = "Not supported mimetype %s";
-    public static final String COULD_NOT_CLOSE_INDIVIDUAL_THUMBNAIL_WARNING = "could not close %s";
-    private static final Logger logger = LoggerFactory.getLogger(ThumbnailerManager.class);
     private final List<Thumbnailer> thumbnailers;
 
     public ThumbnailerManager(ThumbnailerInitializer thumbnailerInitializer) {
@@ -41,26 +36,11 @@ public class ThumbnailerManager implements Closeable {
         }
     }
 
-    @Override
-    public void close() {
-        thumbnailers.forEach(this::closeIndividualThumbnail);
-    }
-
     public List<String> getAcceptedMimeTypes() {
         return thumbnailers
                    .stream()
                    .map(Thumbnailer::getAcceptedMimeTypes)
                    .flatMap(Collection::stream)
                    .collect(Collectors.toList());
-    }
-
-    private void closeIndividualThumbnail(Thumbnailer thumbnailer) {
-        try {
-            thumbnailer.close();
-        } catch (IOException ignored) {
-            logger.warn(String.format(
-                COULD_NOT_CLOSE_INDIVIDUAL_THUMBNAIL_WARNING,
-                thumbnailer.getClass().getName()));
-        }
     }
 }

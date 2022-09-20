@@ -93,32 +93,18 @@ class ThumbnailRequestHandlerTest {
 
     @Test
     public void shouldBeAbleToCreateThumbnailFromPdf() throws IOException {
-        var s3Path = randomS3Path();
-        var expectedThumbnailURL = craftExpectedURL(s3Path);
-        var s3Client = new FakeS3ClientWithPutObjectSupport(PDF_FILENAME,
-                                                            DOCUMENTS_PATH,
-                                                            PDF_MIMETYPE);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(DOCUMENTS_PATH
-                                                           + "/"
-                                                           + PDF_FILENAME),
-                                               s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
-        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
-        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
+        var shouldHaveContentDisposition = false;
+        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, PDF_FILENAME,
+                                                     PDF_MIMETYPE,
+                                                     shouldHaveContentDisposition);
     }
 
     @Test
     public void shouldBeAbleToConvertQuickTimeMovie() throws IOException {
-        var s3Path = randomS3Path();
-        var expectedThumbnailURL = craftExpectedURL(s3Path);
-        var s3Client = new FakeS3ClientWithPutObjectSupport(QUICK_TIME_MOVIE_FILENAME,
-                                                            MOVIE_PATH,
-                                                            QUICK_TIME_MIME_TYPE);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(MOVIE_PATH, QUICK_TIME_MOVIE_FILENAME),
-                                               s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
-        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
-        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
+        var shouldHaveContentDisposition = false;
+        assertThumbnailGeneratedForFileFromResources(MOVIE_PATH, QUICK_TIME_MOVIE_FILENAME,
+                                                     QUICK_TIME_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
     }
 
     @Test

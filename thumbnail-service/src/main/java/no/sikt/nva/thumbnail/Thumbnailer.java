@@ -1,12 +1,11 @@
 package no.sikt.nva.thumbnail;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-public interface Thumbnailer extends Closeable {
+public interface Thumbnailer  {
 
     /**
      * Generate a Thumbnail of the input file.

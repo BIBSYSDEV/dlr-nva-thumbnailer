@@ -116,16 +116,4 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      */
     @Override
     public abstract List<String> getAcceptedMimeTypes();
-
-    /**
-     * This function will be called after all Thumbnails are generated. Note: This acts as a Deconstructor. Do not
-     * expect this object to work after calling this method.
-     *
-     * @throws IOException If some errors occured during closing.
-     */
-    @Override
-    public void close() throws IOException {
-        // Do nothing for now - other Thumbnailer may need cleanup code here.
-        closed = true;
-    }
 }
