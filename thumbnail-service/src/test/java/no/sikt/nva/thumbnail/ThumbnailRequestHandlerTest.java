@@ -51,12 +51,23 @@ class ThumbnailRequestHandlerTest {
     public static final String IMAGES_PATH = "images";
     public static final String PNG_MIME_TYPE = "image/png";
     public static final String TINY_IMAGE = "tiny.png";
+    public static final String DOCUMENTS_PATH = "documents";
+    public static final String OPEN_OFFICE_GRAPHICS_FILE = "open-office-graphics.odg";
+    public static final String OPEN_OFFICE_PRESENTATION_FILE = "open-office-presentation.odp";
+    public static final String OPEN_OFFICE_SPREADSHEET_FILE = "open-office-spreadsheet.ods";
+    public static final String OPEN_OFFICE_TEXT_FILE = "open-office-text.odt";
+    public static final String OPEN_OFFICE_TEXT_NOT_ZIP_FILE = "open-office-text-not-zip.odt";
+    public static final String OPEN_OFFICE_TEXT_WITHOUT_THUMBNAIL_FILE = "open-office-text-without-thumbnail.odt";
     public static final String INPUT_BUCKET_NAME = "input-bucket-name";
     private static final String UNSUPPORTED_FILES_PATH = "unsupported_files";
-    private static final String ZIP_FILE = "zip_is_not_supported.zip";
-    private static final String ZIP_MIME_TYPE = "application/zip";
+    private static final String BINARY_FILE = "octet-stream-not-supported.bin";
+    private static final String APPLICATION_OCTET_STREAM_MIME_TYPE = "application/octet-stream";
     private static final String JPEG_FILE = "pug.jpeg";
     private static final String JPEG_MIME_TYPE = "image/jpeg";
+    private static final String OOG_MIME_TYPE = "application/vnd.oasis.opendocument.graphics";
+    private static final String OOP_MIME_TYPE = "application/vnd.oasis.opendocument.presentation";
+    private static final String OOS_MIME_TYPE = "application/vnd.oasis.opendocument.spreadsheet";
+    private static final String OOT_MIME_TYPE = "application/vnd.oasis.opendocument.text";
     private static final String ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT = "correct-size.png";
     private static final String THUMBNAIL_URI_TEMPLATE_STRING = "https://%s.s3.%s.amazonaws.com/%s";
     private static final String THUMBNAIL_BUCKET_NAME = "dlr-nva-thumbnails";
@@ -85,9 +96,7 @@ class ThumbnailRequestHandlerTest {
         var s3Client = new FakeS3ClientWithPutObjectSupport(QUICK_TIME_MOVIE_FILENAME,
                                                             MOVIE_PATH,
                                                             QUICK_TIME_MIME_TYPE);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(MOVIE_PATH
-                                                           + "/"
-                                                           + QUICK_TIME_MOVIE_FILENAME),
+        var s3Event = createNewFileUploadEvent(UnixPath.of(MOVIE_PATH, QUICK_TIME_MOVIE_FILENAME),
                                                s3Client, s3Path);
         var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
@@ -98,7 +107,7 @@ class ThumbnailRequestHandlerTest {
     void shouldThrowExceptionWhenCannotUseS3Client() throws IOException {
         var expectedMessage = randomString();
         var s3Client = new FakeS3ClientThrowingExceptionOnGetObject(expectedMessage);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH + "/" + JPEG_FILE), s3Client);
+        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH, JPEG_FILE), s3Client);
         var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
         assertThat(appender.getMessages(), containsString(expectedMessage));
@@ -106,8 +115,9 @@ class ThumbnailRequestHandlerTest {
 
     @Test
     void shouldThrowExceptionWhenMimeTypeIsNotSupported() throws IOException {
-        var s3Client = new FakeS3ClientWithPutObjectSupport(ZIP_FILE, UNSUPPORTED_FILES_PATH, ZIP_MIME_TYPE);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(UNSUPPORTED_FILES_PATH + "/" + ZIP_FILE),
+        var s3Client = new FakeS3ClientWithPutObjectSupport(BINARY_FILE, UNSUPPORTED_FILES_PATH,
+                                                            APPLICATION_OCTET_STREAM_MIME_TYPE);
+        var s3Event = createNewFileUploadEvent(UnixPath.of(UNSUPPORTED_FILES_PATH, BINARY_FILE),
                                                s3Client);
         var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
@@ -119,7 +129,7 @@ class ThumbnailRequestHandlerTest {
         var expectedMessage = randomString();
         var s3Client = new FakeS3ClientThrowingExceptionOnPutObject(expectedMessage, JPEG_FILE, JPEG_MIME_TYPE,
                                                                     IMAGES_PATH);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH + "/" + JPEG_FILE), s3Client);
+        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH, JPEG_FILE), s3Client);
         var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
         assertThat(appender.getMessages(), containsString(expectedMessage));
@@ -127,51 +137,105 @@ class ThumbnailRequestHandlerTest {
 
     @Test
     void shouldUploadNativeImageToS3WhenNoExceptionOccurs() throws IOException {
-        var s3Path = randomS3Path();
-        var expectedThumbnailURL = craftExpectedURL(s3Path);
-        var s3Client = new FakeS3ClientWithPutObjectSupport(JPEG_FILE, IMAGES_PATH, JPEG_MIME_TYPE);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH + "/" + JPEG_FILE), s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
-        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
-        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
+        boolean shouldHaveContentDisposition = true;
+        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, JPEG_FILE, JPEG_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
     }
 
     @Test
     void shouldHandleIdenticalSizedThumbnails() throws IOException {
-        var s3Path = randomS3Path();
-        var expectedThumbnailURL = craftExpectedURL(s3Path);
-        var s3Client = new FakeS3ClientWithPutObjectSupport(ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT, IMAGES_PATH,
-                                                            PNG_MIME_TYPE);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH + "/" + ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT),
-                                               s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
-        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
-        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
+        boolean shouldHaveContentDisposition = true;
+        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT, PNG_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
     }
 
     @Test
     void shouldHandleTinySizedThumbnails() throws IOException {
-        var s3Path = randomS3Path();
-        var expectedThumbnailURL = craftExpectedURL(s3Path);
-        var s3Client = new FakeS3ClientWithPutObjectSupport(TINY_IMAGE, IMAGES_PATH, PNG_MIME_TYPE);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH + "/" + TINY_IMAGE),
-                                               s3Client, s3Path);
-        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
-        var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
-        assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
+        boolean shouldHaveContentDisposition = true;
+        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, TINY_IMAGE, PNG_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
     }
 
     @Test
     void shouldHandleFilesWithoutContentDisposition() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, TINY_IMAGE, PNG_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
+    }
+
+    /*
+        OpenOffice documents:
+     */
+    @Test
+    void shouldThrowExceptionWhenOpenOfficeDocumentIsNotZip() throws IOException {
+        var s3Client = new FakeS3ClientWithPutObjectSupport(OPEN_OFFICE_TEXT_NOT_ZIP_FILE,
+                                                            UNSUPPORTED_FILES_PATH,
+                                                            OOT_MIME_TYPE);
+        var s3Event = createNewFileUploadEvent(
+            UnixPath.of(UNSUPPORTED_FILES_PATH, OPEN_OFFICE_TEXT_NOT_ZIP_FILE),
+            s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
+        assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
+
+        assertThat(appender.getMessages(), containsString(COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenOpenOfficeDocumentDoesNotContainThumbnail() throws IOException {
+        var s3Client = new FakeS3ClientWithPutObjectSupport(OPEN_OFFICE_TEXT_WITHOUT_THUMBNAIL_FILE,
+                                                            UNSUPPORTED_FILES_PATH,
+                                                            OOT_MIME_TYPE);
+        var s3Event = createNewFileUploadEvent(
+            UnixPath.of(UNSUPPORTED_FILES_PATH, OPEN_OFFICE_TEXT_WITHOUT_THUMBNAIL_FILE),
+            s3Client);
+        var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
+        assertThrows(RuntimeException.class, () -> handler.handleRequest(s3Event, CONTEXT));
+
+        assertThat(appender.getMessages(), containsString(COULD_NOT_CREATE_THUMBNAIL_LOG_MESSAGE));
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForOpenOfficeGraphicsDocument() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_GRAPHICS_FILE, OOG_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForOpenOfficePresentationDocument() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_PRESENTATION_FILE, OOP_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForOpenOfficeSpreadsheetDocument() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_SPREADSHEET_FILE, OOS_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForOpenOfficeTextDocument() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_TEXT_FILE, OOT_MIME_TYPE,
+                                                     shouldHaveContentDisposition);
+    }
+
+    private void assertThumbnailGeneratedForFileFromResources(final String folderName,
+                                                              final String fileName,
+                                                              final String mimetype,
+                                                              final boolean shouldHaveContentDisposition)
+        throws IOException {
+
         var s3Path = randomS3Path();
         var expectedThumbnailURL = craftExpectedURL(s3Path);
-        var shouldHaveContentDisposition = false;
-        var s3Client = new FakeS3ClientWithPutObjectSupport(TINY_IMAGE, IMAGES_PATH, PNG_MIME_TYPE,
+        var s3Client = new FakeS3ClientWithPutObjectSupport(fileName, folderName, mimetype,
                                                             shouldHaveContentDisposition);
-        var s3Event = createNewFileUploadEvent(UnixPath.of(IMAGES_PATH + "/" + TINY_IMAGE),
-                                               s3Client, s3Path);
+        var s3Event = createNewFileUploadEvent(UnixPath.of(folderName, fileName), s3Client, s3Path);
         var handler = new ThumbnailRequestHandler(s3Client, thumbnailerInitializer);
         var thumbnailUrl = handler.handleRequest(s3Event, CONTEXT);
+
         assertThat(thumbnailUrl, is(equalTo(expectedThumbnailURL)));
     }
 

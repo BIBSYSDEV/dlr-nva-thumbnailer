@@ -6,6 +6,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import javax.imageio.ImageIO;
 
 public class ImageResizer {
@@ -21,6 +22,12 @@ public class ImageResizer {
         this.thumbWidth = thumbWidth;
         this.thumbHeight = thumbHeight;
         this.inputImage = ImageIO.read(inputFile);
+    }
+
+    public ImageResizer(int thumbWidth, int thumbHeight, InputStream inputStream) throws IOException {
+        this.thumbWidth = thumbWidth;
+        this.thumbHeight = thumbHeight;
+        this.inputImage = ImageIO.read(inputStream);
     }
 
     public void writeThumbnailToFile(File output) throws IOException {
