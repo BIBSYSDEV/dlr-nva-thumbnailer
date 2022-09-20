@@ -14,10 +14,7 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
 
     protected int thumbWidth;
 
-    /**
-     * Keep memory if this thumbnailer was closed before.
-     */
-    protected boolean closed;
+
 
     /**
      * Initialize the thumbnail size from default constants.
@@ -25,7 +22,6 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
     public AbstractThumbnailer() {
         this.thumbHeight = THUMBNAIL_DEFAULT_HEIGHT;
         this.thumbWidth = THUMBNAIL_DEFAULT_WIDTH;
-        this.closed = false;
     }
 
     /**
