@@ -12,6 +12,7 @@ awsLambdaCore = '1.2.1'
 awsLambdaEvents = '3.11.0'
 ffmpeg = '0.7.0'
 pdfBox = '2.0.26'
+thumbnails4j = '1.0.0'
 
 [libraries]
 nva-core = { group = "com.github.bibsysdev", name = "core", version.ref = "nva" }
@@ -40,6 +41,11 @@ aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', 
 
 bramp-ffmpeg = {group = 'net.bramp.ffmpeg', name = 'ffmpeg', version.ref = 'ffmpeg'}
 apache-pdfbox = {group = 'org.apache.pdfbox', name = 'pdfbox', version.ref = 'pdfBox'}
+thumbnails4j-doc = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-doc', version.ref = 'thumbnails4j'}
+thumbnails4j-docx = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-docx', version.ref = 'thumbnails4j'}
+thumbnails4j-xls = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-xls', version.ref = 'thumbnails4j'}
+thumbnails4j-xlsx = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-xlsx', version.ref = 'thumbnails4j'}
+thumbnails4j-pptx = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-pptx', version.ref = 'thumbnails4j'}
 
 [bundles]
 testing = ["mockito-core", "hamcrest-base", "hamcrest-core", "junit-jupiter-engine", "junit-jupiter-params",

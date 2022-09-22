@@ -1,5 +1,16 @@
 package no.sikt.nva.thumbnail.thumbnailer;
 
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_FF_MPEG;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_MS_ADVANCED_SYSTEMS_FORMAT;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_MP4;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_MPEG;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_MS_VIDEO;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_OGG;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_QUICKTIME;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_WEBM;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_X_FLV;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_X_M4V;
+import static no.sikt.nva.thumbnail.util.MediaType.VIDEO_X_MATROSKA;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -38,18 +49,17 @@ public class FFMpegThumbnailer extends AbstractThumbnailer {
     //Here are some of the formats converted to mimetypes:
     @Override
     public List<String> getAcceptedMimeTypes() {
-        return List.of("application/vnd.ms-asf",
-                       "application/ffmpeg",
-                       "video/x-msvideo",
-                       "video/x-flv",
-                       "video/webm",
-                       "video/mpeg",
-                       "video/x-m4v",
-                       "video/mp4",
-                       "video/ogg",
-                       "video/x-matroska",
-                       "video/mpeg",
-                       "video/quicktime"
+        return List.of(APPLICATION_MS_ADVANCED_SYSTEMS_FORMAT.getValue(),
+                       APPLICATION_FF_MPEG.getValue(),
+                       VIDEO_MS_VIDEO.getValue(),
+                       VIDEO_X_FLV.getValue(),
+                       VIDEO_WEBM.getValue(),
+                       VIDEO_MPEG.getValue(),
+                       VIDEO_X_M4V.getValue(),
+                       VIDEO_MP4.getValue(),
+                       VIDEO_OGG.getValue(),
+                       VIDEO_X_MATROSKA.getValue(),
+                       VIDEO_QUICKTIME.getValue()
         );
     }
 

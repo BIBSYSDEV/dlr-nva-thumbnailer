@@ -1,5 +1,32 @@
 package no.sikt.nva.thumbnail.thumbnailer;
 
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_DATABASE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_FORMULA;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_GRAPHICS;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_GRAPHICS_TEMPLATE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_IMAGE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_PRESENTATION;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_PRESENTATION_TEMPLATE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_SPREADSHEET;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_SPREADSHEET_TEMPLATE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_TEXT;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_TEXT_MASTER;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_TEXT_TEMPLATE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_OASIS_OPENDOCUMENT_TEXT_WEB;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_STARDIVISION_CALC;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_STARDIVISION_DRAW;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_STARDIVISION_IMPRESS;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_STARDIVISION_MATH;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_CALC;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_CALC_TEMPLATE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_DRAW;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_DRAW_TEMPLATE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_IMPRESS;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_IMPRESS_TEMPLATE;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_MATH;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_WRITER;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_WRITER_GLOBAL;
+import static no.sikt.nva.thumbnail.util.MediaType.APPLICATION_SUN_XML_WRITER_TEMPLATE;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +52,6 @@ public class OpenOfficeThumbnailer extends AbstractThumbnailer {
                 final ImageResizer resizer = new ImageResizer(thumbWidth, thumbHeight, in);
                 resizer.writeThumbnailToFile(output);
             }
-
         } catch (ZipException e) {
             throw new ThumbnailerException("This is not a zipped file. Is this really an OpenOffice-File?", e);
         }
@@ -34,36 +60,34 @@ public class OpenOfficeThumbnailer extends AbstractThumbnailer {
     @Override
     public List<String> getAcceptedMimeTypes() {
         return List.of(
-            "application/vnd.sun.xml.writer",
-            "application/vnd.sun.xml.writer.template",
-            "application/vnd.sun.xml.writer.global",
-            "application/vnd.sun.xml.calc",
-            "application/vnd.sun.xml.calc.template",
-            "application/vnd.stardivision.calc",
-            "application/vnd.sun.xml.impress",
-            "application/vnd.sun.xml.impress.template ",
-            "application/vnd.stardivision.impress sdd",
-            "application/vnd.sun.xml.draw",
-            "application/vnd.sun.xml.draw.template",
-            "application/vnd.stardivision.draw",
-            "application/vnd.sun.xml.math",
-            "application/vnd.stardivision.math",
-            "application/vnd.oasis.opendocument.text",
-            "application/vnd.oasis.opendocument.text-template",
-            "application/vnd.oasis.opendocument.text-web",
-            "application/vnd.oasis.opendocument.text-master",
-            "application/vnd.oasis.opendocument.graphics",
-            "application/vnd.oasis.opendocument.graphics-template",
-            "application/vnd.oasis.opendocument.presentation",
-            "application/vnd.oasis.opendocument.presentation-template",
-            "application/vnd.oasis.opendocument.spreadsheet",
-            "application/vnd.oasis.opendocument.spreadsheet-template",
-            "application/vnd.oasis.opendocument.chart",
-            "application/vnd.oasis.opendocument.formula",
-            "application/vnd.oasis.opendocument.database",
-            "application/vnd.oasis.opendocument.image",
-
-            "application/zip" /* Could be an OpenOffice file! */
+            APPLICATION_SUN_XML_WRITER.getValue(),
+            APPLICATION_SUN_XML_WRITER_TEMPLATE.getValue(),
+            APPLICATION_SUN_XML_WRITER_GLOBAL.getValue(),
+            APPLICATION_SUN_XML_CALC.getValue(),
+            APPLICATION_SUN_XML_CALC_TEMPLATE.getValue(),
+            APPLICATION_STARDIVISION_CALC.getValue(),
+            APPLICATION_SUN_XML_IMPRESS.getValue(),
+            APPLICATION_SUN_XML_IMPRESS_TEMPLATE.getValue(),
+            APPLICATION_STARDIVISION_IMPRESS.getValue(),
+            APPLICATION_SUN_XML_DRAW.getValue(),
+            APPLICATION_SUN_XML_DRAW_TEMPLATE.getValue(),
+            APPLICATION_STARDIVISION_DRAW.getValue(),
+            APPLICATION_SUN_XML_MATH.getValue(),
+            APPLICATION_STARDIVISION_MATH.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_TEXT.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_TEXT_TEMPLATE.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_TEXT_WEB.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_TEXT_MASTER.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_GRAPHICS.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_GRAPHICS_TEMPLATE.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_PRESENTATION.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_PRESENTATION_TEMPLATE.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_SPREADSHEET.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_SPREADSHEET_TEMPLATE.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_SPREADSHEET_TEMPLATE.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_FORMULA.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_DATABASE.getValue(),
+            APPLICATION_OASIS_OPENDOCUMENT_IMAGE.getValue()
         );
     }
 }

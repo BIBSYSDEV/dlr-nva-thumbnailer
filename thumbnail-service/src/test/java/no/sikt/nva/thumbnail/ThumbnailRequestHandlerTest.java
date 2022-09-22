@@ -31,6 +31,7 @@ import no.sikt.nva.testutils.FakeS3ClientWithPutObjectSupport;
 import no.sikt.nva.testutils.thumbnailer.FakeFFmpeg;
 import no.sikt.nva.testutils.thumbnailer.FakeFFprobe;
 import no.sikt.nva.thumbnail.thumbnailer.ThumbnailerInitializer;
+import no.sikt.nva.thumbnail.util.MediaType;
 import no.unit.nva.s3.S3Driver;
 import nva.commons.core.ioutils.IoUtils;
 import nva.commons.core.paths.UnixPath;
@@ -58,6 +59,11 @@ class ThumbnailRequestHandlerTest {
     public static final String OPEN_OFFICE_TEXT_FILE = "open-office-text.odt";
     public static final String OPEN_OFFICE_TEXT_NOT_ZIP_FILE = "open-office-text-not-zip.odt";
     public static final String OPEN_OFFICE_TEXT_WITHOUT_THUMBNAIL_FILE = "open-office-text-without-thumbnail.odt";
+    public static final String WORD_DOC_FILE = "word-document.doc";
+    public static final String WORD_DOCX_FILE = "word-document.docx";
+    public static final String EXCEL_XLS_FILE = "excel-document.xls";
+    public static final String EXCEL_XLSX_FILE = "excel-document.xlsx";
+    public static final String POWERPOINT_PPT_FILE = "powerpoint-presentation.pptx";
     public static final String INPUT_BUCKET_NAME = "input-bucket-name";
     private static final String UNSUPPORTED_FILES_PATH = "unsupported_files";
     private static final String BINARY_FILE = "octet-stream-not-supported.bin";
@@ -94,17 +100,17 @@ class ThumbnailRequestHandlerTest {
     @Test
     public void shouldBeAbleToCreateThumbnailFromPdf() throws IOException {
         var shouldHaveContentDisposition = false;
-        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, PDF_FILENAME,
-                                                     PDF_MIMETYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(DOCUMENTS_PATH, PDF_FILENAME,
+                                 PDF_MIMETYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     public void shouldBeAbleToConvertQuickTimeMovie() throws IOException {
         var shouldHaveContentDisposition = false;
-        assertThumbnailGeneratedForFileFromResources(MOVIE_PATH, QUICK_TIME_MOVIE_FILENAME,
-                                                     QUICK_TIME_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(MOVIE_PATH, QUICK_TIME_MOVIE_FILENAME,
+                                 QUICK_TIME_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
@@ -142,29 +148,29 @@ class ThumbnailRequestHandlerTest {
     @Test
     void shouldUploadNativeImageToS3WhenNoExceptionOccurs() throws IOException {
         boolean shouldHaveContentDisposition = true;
-        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, JPEG_FILE, JPEG_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(IMAGES_PATH, JPEG_FILE, JPEG_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     void shouldHandleIdenticalSizedThumbnails() throws IOException {
         boolean shouldHaveContentDisposition = true;
-        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT, PNG_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(IMAGES_PATH, ALREADY_HAVE_SIZE_AS_THUMBNAIL_OUTPUT, PNG_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     void shouldHandleTinySizedThumbnails() throws IOException {
         boolean shouldHaveContentDisposition = true;
-        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, TINY_IMAGE, PNG_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(IMAGES_PATH, TINY_IMAGE, PNG_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     void shouldHandleFilesWithoutContentDisposition() throws IOException {
         boolean shouldHaveContentDisposition = false;
-        assertThumbnailGeneratedForFileFromResources(IMAGES_PATH, TINY_IMAGE, PNG_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(IMAGES_PATH, TINY_IMAGE, PNG_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     /*
@@ -201,35 +207,99 @@ class ThumbnailRequestHandlerTest {
     @Test
     void shouldUploadThumbnailToS3ForOpenOfficeGraphicsDocument() throws IOException {
         boolean shouldHaveContentDisposition = false;
-        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_GRAPHICS_FILE, OOG_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(DOCUMENTS_PATH, OPEN_OFFICE_GRAPHICS_FILE, OOG_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     void shouldUploadThumbnailToS3ForOpenOfficePresentationDocument() throws IOException {
         boolean shouldHaveContentDisposition = false;
-        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_PRESENTATION_FILE, OOP_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(DOCUMENTS_PATH, OPEN_OFFICE_PRESENTATION_FILE, OOP_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     void shouldUploadThumbnailToS3ForOpenOfficeSpreadsheetDocument() throws IOException {
         boolean shouldHaveContentDisposition = false;
-        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_SPREADSHEET_FILE, OOS_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(DOCUMENTS_PATH, OPEN_OFFICE_SPREADSHEET_FILE, OOS_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     void shouldUploadThumbnailToS3ForOpenOfficeTextDocument() throws IOException {
         boolean shouldHaveContentDisposition = false;
-        assertThumbnailGeneratedForFileFromResources(DOCUMENTS_PATH, OPEN_OFFICE_TEXT_FILE, OOT_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+        assertThumbnailGenerated(DOCUMENTS_PATH, OPEN_OFFICE_TEXT_FILE, OOT_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
-    private void assertThumbnailGeneratedForFileFromResources(final String folderName,
-                                                              final String fileName,
-                                                              final String mimetype,
-                                                              final boolean shouldHaveContentDisposition)
+    @Test
+    void shouldUploadThumbnailToS3ForWordDoc() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, WORD_DOC_FILE,
+                                 MediaType.APPLICATION_MS_WORD.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForWordDocx() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, WORD_DOCX_FILE,
+                                 MediaType.APPLICATION_OPEN_XML_OFFICE_WORD_DOC.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForWordDocxTruncatedMimetype() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, WORD_DOCX_FILE,
+                                 MediaType.APPLICATION_OPEN_XML_OFFICE_WORD.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForExcelXls() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, EXCEL_XLS_FILE,
+                                 MediaType.APPLICATION_MS_EXCEL.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForExcelXlsx() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, EXCEL_XLSX_FILE,
+                                 MediaType.APPLICATION_OPEN_XML_OFFICE_SPREADSHEET_SHEET.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForExcelXlsxTruncatedMimeType() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, EXCEL_XLSX_FILE,
+                                 MediaType.APPLICATION_OPEN_XML_OFFICE_SPREADSHEET.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForPowerpointPptx() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, POWERPOINT_PPT_FILE,
+                                 MediaType.APPLICATION_OPEN_XML_OFFICE_PRESENTATION_PRESENTATION.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    @Test
+    void shouldUploadThumbnailToS3ForPowerpointPptxTruncatedMimeType() throws IOException {
+        boolean shouldHaveContentDisposition = false;
+        assertThumbnailGenerated(DOCUMENTS_PATH, POWERPOINT_PPT_FILE,
+                                 MediaType.APPLICATION_OPEN_XML_OFFICE_PRESENTATION.getValue(),
+                                 shouldHaveContentDisposition);
+    }
+
+    private void assertThumbnailGenerated(final String folderName,
+                                          final String fileName,
+                                          final String mimetype,
+                                          final boolean shouldHaveContentDisposition)
         throws IOException {
 
         var s3Path = randomS3Path();
