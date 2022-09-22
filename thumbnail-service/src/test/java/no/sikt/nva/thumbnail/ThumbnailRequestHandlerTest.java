@@ -101,16 +101,16 @@ class ThumbnailRequestHandlerTest {
     public void shouldBeAbleToCreateThumbnailFromPdf() throws IOException {
         var shouldHaveContentDisposition = false;
         assertThumbnailGenerated(DOCUMENTS_PATH, PDF_FILENAME,
-                                                     PDF_MIMETYPE,
-                                                     shouldHaveContentDisposition);
+                                 PDF_MIMETYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
     public void shouldBeAbleToConvertQuickTimeMovie() throws IOException {
         var shouldHaveContentDisposition = false;
         assertThumbnailGenerated(MOVIE_PATH, QUICK_TIME_MOVIE_FILENAME,
-                                                     QUICK_TIME_MIME_TYPE,
-                                                     shouldHaveContentDisposition);
+                                 QUICK_TIME_MIME_TYPE,
+                                 shouldHaveContentDisposition);
     }
 
     @Test
