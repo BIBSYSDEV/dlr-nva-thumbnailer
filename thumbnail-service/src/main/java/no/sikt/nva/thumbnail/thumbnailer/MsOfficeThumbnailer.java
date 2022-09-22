@@ -25,6 +25,19 @@ public class MsOfficeThumbnailer extends AbstractThumbnailer {
     public void generateThumbnail(File input, File output, String mimeType) throws IOException, ThumbnailerException {
         final MediaType mediaType = MediaType.fromValue(mimeType);
 
+        final Thumbnailer thumbnailer = resolveThumbnailer(mediaType);
+
+        try {
+            List<Dimensions> dimensions = Collections.singletonList(
+                new Dimensions(thumbWidth, thumbHeight));
+            List<BufferedImage> thumbnails = thumbnailer.getThumbnails(input, dimensions);
+            ImageIO.write(thumbnails.get(0), PNG, output);
+        } catch (ThumbnailingException e) {
+            throw new ThumbnailerException("Failed to generate thumbnail!", e);
+        }
+    }
+
+    private Thumbnailer resolveThumbnailer(MediaType mediaType) throws ThumbnailerException {
         final Thumbnailer thumbnailer;
         switch (mediaType) {
             case APPLICATION_MS_WORD:
@@ -46,17 +59,9 @@ public class MsOfficeThumbnailer extends AbstractThumbnailer {
                 thumbnailer = new PPTXThumbnailer();
                 break;
             default:
-                throw new ThumbnailerException(String.format("Unexpected mime type: %s", mimeType));
+                throw new ThumbnailerException(String.format("Unexpected mime type: %s", mediaType.getValue()));
         }
-
-        try {
-            List<Dimensions> dimensions = Collections.singletonList(
-                new Dimensions(thumbWidth, thumbHeight));
-            List<BufferedImage> thumbnails = thumbnailer.getThumbnails(input, dimensions);
-            ImageIO.write(thumbnails.get(0), PNG, output);
-        } catch (ThumbnailingException e) {
-            throw new ThumbnailerException("Failed to generate thumbnail!", e);
-        }
+        return thumbnailer;
     }
 
     @Override
