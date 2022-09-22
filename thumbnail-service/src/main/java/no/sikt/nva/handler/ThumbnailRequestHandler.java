@@ -94,7 +94,8 @@ public class ThumbnailRequestHandler implements RequestHandler<S3Event, URL> {
     }
 
     private File generateThumbnail(File inputFile) {
-        try (var thumbnailerManager = new ThumbnailerManager(thumbnailerInitializer)) {
+        try {
+            var thumbnailerManager = new ThumbnailerManager(thumbnailerInitializer);
             var supportedMimeTypes = String.join(DELIMITER, thumbnailerManager.getAcceptedMimeTypes());
             logCurrentSupportedMimeTypes(supportedMimeTypes);
             var outPutFile = new File(INPUT_FILE_NAME_PREFIX + OUTPUT_FILE_NAME);

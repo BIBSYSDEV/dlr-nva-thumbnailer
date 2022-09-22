@@ -11,6 +11,7 @@ awsSdk2Version = "2.17.191"
 awsLambdaCore = '1.2.1'
 awsLambdaEvents = '3.11.0'
 ffmpeg = '0.7.0'
+pdfBox = '2.0.26'
 thumbnails4j = '1.0.0'
 
 [libraries]
@@ -39,6 +40,7 @@ aws-lambda-java-core = { group = "com.amazonaws", name = "aws-lambda-java-core",
 aws-lambda-events = { group = 'com.amazonaws', name = 'aws-lambda-java-events', version.ref = 'awsLambdaEvents' }
 
 bramp-ffmpeg = {group = 'net.bramp.ffmpeg', name = 'ffmpeg', version.ref = 'ffmpeg'}
+apache-pdfbox = {group = 'org.apache.pdfbox', name = 'pdfbox', version.ref = 'pdfBox'}
 thumbnails4j-doc = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-doc', version.ref = 'thumbnails4j'}
 thumbnails4j-docx = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-docx', version.ref = 'thumbnails4j'}
 thumbnails4j-xls = {group = 'co.elastic.thumbnails4j', name='thumbnails4j-xls', version.ref = 'thumbnails4j'}

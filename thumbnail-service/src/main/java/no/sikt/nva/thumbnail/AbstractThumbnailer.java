@@ -14,10 +14,7 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
 
     protected int thumbWidth;
 
-    /**
-     * Keep memory if this thumbnailer was closed before.
-     */
-    protected boolean closed;
+
 
     /**
      * Initialize the thumbnail size from default constants.
@@ -25,7 +22,6 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
     public AbstractThumbnailer() {
         this.thumbHeight = THUMBNAIL_DEFAULT_HEIGHT;
         this.thumbWidth = THUMBNAIL_DEFAULT_WIDTH;
-        this.closed = false;
     }
 
     /**
@@ -116,16 +112,4 @@ public abstract class AbstractThumbnailer implements Thumbnailer {
      */
     @Override
     public abstract List<String> getAcceptedMimeTypes();
-
-    /**
-     * This function will be called after all Thumbnails are generated. Note: This acts as a Deconstructor. Do not
-     * expect this object to work after calling this method.
-     *
-     * @throws IOException If some errors occured during closing.
-     */
-    @Override
-    public void close() throws IOException {
-        // Do nothing for now - other Thumbnailer may need cleanup code here.
-        closed = true;
-    }
 }

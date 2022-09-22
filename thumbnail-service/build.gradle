@@ -9,6 +9,7 @@ dependencies {
     implementation libs.aws.lambda.java.core
     implementation libs.aws.lambda.events
     implementation libs.bramp.ffmpeg
+    implementation libs.apache.pdfbox
     implementation libs.thumbnails4j.doc
     implementation libs.thumbnails4j.docx
     implementation libs.thumbnails4j.xls
