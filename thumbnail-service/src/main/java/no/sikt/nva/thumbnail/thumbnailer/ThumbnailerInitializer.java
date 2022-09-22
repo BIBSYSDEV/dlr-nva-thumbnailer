@@ -29,6 +29,7 @@ public class ThumbnailerInitializer {
     public FFprobe getFFprobe() {
         return ffprobe;
     }
+
     public String getPartiallyProcessedFilename() {
         return partiallyProcessedFilename;
     }

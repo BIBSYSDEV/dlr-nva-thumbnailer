@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import no.sikt.nva.thumbnail.thumbnailer.FFMpegThumbnailer;
+import no.sikt.nva.thumbnail.thumbnailer.MsOfficeThumbnailer;
 import no.sikt.nva.thumbnail.thumbnailer.NativeImageThumbnailer;
 import no.sikt.nva.thumbnail.thumbnailer.OpenOfficeThumbnailer;
 import no.sikt.nva.thumbnail.thumbnailer.ThumbnailerInitializer;
@@ -23,6 +24,7 @@ public class ThumbnailerManager implements Closeable {
     public ThumbnailerManager(ThumbnailerInitializer thumbnailerInitializer) {
         this.thumbnailers = List.of(new NativeImageThumbnailer(),
                                     new FFMpegThumbnailer(thumbnailerInitializer),
+                                    new MsOfficeThumbnailer(),
                                     new OpenOfficeThumbnailer());
     }
 
